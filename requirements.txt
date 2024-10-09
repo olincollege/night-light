@@ -3,3 +3,9 @@ matplotlib
 numpy
 scipy
 jupyter
+rawpy
+python-dotenv
+torch
+black
+pandas
+ultralytics
