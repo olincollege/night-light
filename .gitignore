@@ -1,3 +1,10 @@
+cv_results/
+venv/
+env/
+.env
+.idea/
+*.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
