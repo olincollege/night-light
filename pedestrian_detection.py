@@ -20,13 +20,13 @@ def preprocess_image(dng_path):
             gamma=(2, 4),
             exp_shift=2,
         )
-    # lab = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2LAB)
-    # l, a, b = cv2.split(lab)
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    # cl = clahe.apply(l)
-    # lab = cv2.merge((cl, a, b))
-    # enhanced_image = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
-    return rgb_image
+    lab = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2LAB)
+    l, a, b = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    cl = clahe.apply(l)
+    lab = cv2.merge((cl, a, b))
+    enhanced_image = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+    return enhanced_image
 
 
 def resize_image(image, target_width=1024):
@@ -60,8 +60,8 @@ def upscale_boxes(results, scale_factor):
 
 
 def draw_boxes(image, boxes):
-    for x1, y1, x2, y2, conf, cls in boxes:
-        label = f"Person: {conf:.2f}"
+    for i, (x1, y1, x2, y2, conf, cls) in enumerate(boxes):
+        label = f"Person {i}: {conf:.2f}"
         cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(image, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
     return image
@@ -90,12 +90,9 @@ def get_image_dir_from_env():
     except Exception:
         raise
 
-    # if __name__ == "__main__":
 
+if __name__ == "__main__":
+    image_dir = get_image_dir_from_env()
 
-image_dir = get_image_dir_from_env()
-
-print(image_dir)
-
-for im in image_dir.rglob("*.dng"):
-    main(image_dir_path=im, destination=Path("./cv_results"))
+    for im in image_dir.rglob("*.dng"):
+        main(image_dir_path=im, destination=Path("./cv_results"))
