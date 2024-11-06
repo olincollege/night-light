@@ -1,5 +1,5 @@
 import os
-from night_light.crosswalks import query_geojson
+from night_light.utils import query_geojson
 
 
 def test_query_boston_crosswalk(boston_crosswalk):

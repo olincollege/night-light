@@ -13,27 +13,28 @@ from night_light.utils.mapping import open_html_file
 from test.conftest import BOSTON_CENTER_COORD
 
 
-def test_boston_crosswalk_map(boston_crosswalk):
-    """Test creating a map of the Boston crosswalk"""
+def test_boston_adt_map(boston_traffic, boston_crosswalk):
+    """Test creating a map of Boston's average annual daily traffic"""
     map_filename = "test_boston_crosswalk.html"
-    crosswalk_layer = folium.GeoJson(
-        boston_crosswalk,
-        name="Crosswalk",
+    adt_layer = folium.GeoJson(
+        boston_traffic,
+        name=f"Average Annual Daily Traffic",
         style_function=lambda x: LAYER_STYLE_DICT,
         highlight_function=lambda x: LAYER_HIGHLIGHT_STYLE_DICT,
         smooth_factor=2.0,
         tooltip=Tooltip(
-            fields=["OBJECTID", "CrossType", "Conf_Score"],
-            aliases=["Crosswalk ID", "Crosswalk Type", "Confidence Score"],
+            fields=["Route_ID", "AADT", "Facility"],
+            aliases=["Route ID", "Average Annual Daily Traffic", "Facility Type"],
             max_width=800,
         ),
     )
     create_folium_map(
-        layers=[crosswalk_layer],
+        layers=[adt_layer],
         zoom_start=12,
         center=BOSTON_CENTER_COORD,
         map_filename=map_filename,
     )
+
     assert os.path.exists(map_filename)
     open_html_file(map_filename)
     time.sleep(1)
