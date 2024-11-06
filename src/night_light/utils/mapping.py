@@ -48,7 +48,7 @@ def create_folium_map(
         layers (list[folium.GeoJson]): GeoJson layers containing geometries to be added
         to the map.
         center (list): A list containing the latitude and longitude for the map center
-        [latitude, longitude].
+            [latitude, longitude].
         zoom_start (int): The initial zoom level for the map.
         map_filename (str): The file path where the HTML map will be saved.
 
