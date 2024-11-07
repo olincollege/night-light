@@ -1,7 +1,7 @@
 import os
 
 from night_light.utils import query_geojson
-from test.conftest import BOSTON_TOWN_ID
+from tests.conftest import BOSTON_TOWN_ID
 
 
 def test_query_boston_adt(boston_traffic):

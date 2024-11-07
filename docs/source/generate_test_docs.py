@@ -1,13 +1,13 @@
 import os
 
 # Paths configuration
-test_dir = "../../test"
+test_dir = "../../tests"
 output_dir = "./tests"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-# Iterate over test files in the test directory
+# Iterate over tests files in the tests directory
 for filename in os.listdir(test_dir):
     if filename.startswith("test_") and filename.endswith(".py"):
         module_name = filename.replace(".py", "")

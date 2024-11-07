@@ -10,7 +10,7 @@ from night_light.utils import (
     Tooltip,
 )
 from night_light.utils.mapping import open_html_file
-from test.conftest import BOSTON_CENTER_COORD
+from tests.conftest import BOSTON_CENTER_COORD
 
 
 def test_boston_adt_map(boston_traffic, boston_crosswalk):
