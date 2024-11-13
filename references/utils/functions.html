@@ -269,7 +269,7 @@
 <span id="utility-functions"></span><h1>Utility functions<a class="headerlink" href="#module-night_light.utils.mapping" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="night_light.utils.mapping.create_folium_map">
-<span class="sig-prename descclassname"><span class="pre">night_light.utils.mapping.</span></span><span class="sig-name descname"><span class="pre">create_folium_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">GeoJson</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#night_light.utils.mapping.create_folium_map" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">night_light.utils.mapping.</span></span><span class="sig-name descname"><span class="pre">create_folium_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Layer</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#night_light.utils.mapping.create_folium_map" title="Link to this definition">¶</a></dt>
 <dd><p>Create a Folium map from a GeoDataFrame and save it to an HTML file.</p>
 <p>This function generates a Folium map centered at a specified location and zoom
 level, overlays the geometries from the provided GeoDataFrame, and saves the map as
@@ -277,8 +277,8 @@ an HTML file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>layers</strong> (<em>list</em><em>[</em><em>folium.GeoJson</em><em>]</em>) – GeoJson layers containing geometries to be added</p></li>
-<li><p><strong>map.</strong> (<em>to the</em>)</p></li>
+<li><p><strong>layers</strong> (<em>list</em><em>[</em><em>folium.map.Layer</em><em>]</em>) – Layers containing geometries to be added to the
+map.</p></li>
 <li><p><strong>center</strong> (<em>list</em>) – A list containing the latitude and longitude for the map center
 [latitude, longitude].</p></li>
 <li><p><strong>zoom_start</strong> (<em>int</em>) – The initial zoom level for the map.</p></li>
