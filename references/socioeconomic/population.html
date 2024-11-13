@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Utility functions" href="functions.html" /><link rel="prev" title="References" href="../index.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Explanations" href="../../explanations/index.html" /><link rel="prev" title="Socioeconomic Module" href="index.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Utils Module - Night Light 0.0.1 documentation</title>
+        <title>Population Density - Night Light 0.0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -207,12 +207,12 @@
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">References</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of References</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">Utils Module</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Utils Module</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="functions.html">Utility functions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../utils/index.html">Utils Module</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Utils Module</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../utils/functions.html">Utility functions</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../socioeconomic/index.html">Socioeconomic Module</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Socioeconomic Module</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../socioeconomic/population.html">Population Density</a></li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Socioeconomic Module</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Socioeconomic Module</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">Population Density</a></li>
 </ul>
 </li>
 </ul>
@@ -249,7 +249,7 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="../../_sources/references/utils/index.rst.txt" title="View this page">
+  <a class="muted-link" href="../../_sources/references/socioeconomic/population.rst.txt" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
@@ -263,19 +263,105 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="utils-module">
-<h1>Utils Module<a class="headerlink" href="#utils-module" title="Link to this heading">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="functions.html">Utility functions</a></li>
+          <section id="module-night_light.socioeconomic.population">
+<span id="population-density"></span><h1>Population Density<a class="headerlink" href="#module-night_light.socioeconomic.population" title="Link to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="night_light.socioeconomic.population.get_population">
+<span class="sig-prename descclassname"><span class="pre">night_light.socioeconomic.population.</span></span><span class="sig-name descname"><span class="pre">get_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2021</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StateFIPS</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">StateFIPS.MASSACHUSETTS</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#night_light.socioeconomic.population.get_population" title="Link to this definition">¶</a></dt>
+<dd><p>Fetch population data for a given year and state using the ACS 5-year survey.</p>
+<p>This function retrieves population data for a specific state and year from the
+American Community Survey (ACS) 5-year dataset. It allows for additional filtering
+by specific population segments, including seniors, youths, and disabled
+individuals, if specified in the keyword arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year</strong> (<em>int</em><em>, </em><em>optional</em>) – The year for which to fetch the data. Defaults to 2021.</p></li>
+<li><p><strong>state</strong> (<em>StateFIPS</em><em>, </em><em>optional</em>) – The state for which to fetch the data, using FIPS
+code Enum. Defaults to StateFIPS.MASSACHUSETTS.</p></li>
 </ul>
-</div>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>seniors</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, fetches the senior population (ages 65+).</p></li>
+<li><p><strong>youths</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, fetches the youth population (ages 0-17).</p></li>
+<li><p><strong>disabled</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, fetches the disabled population.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>A DataFrame containing the population data by census tract,
+with columns for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>”GEOID”</p></li>
+<li><p>”total_population”</p></li>
+<li><p>”senior_population” (if seniors=True)</p></li>
+<li><p>”youth_population” (if youths=True)</p></li>
+<li><p>”disabled_population” (if disabled=True)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-night_light.socioeconomic.population_density">
+<dt class="sig sig-object py" id="night_light.socioeconomic.population_density.get_population_density">
+<span class="sig-prename descclassname"><span class="pre">night_light.socioeconomic.population_density.</span></span><span class="sig-name descname"><span class="pre">get_population_density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2021</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StateFIPS</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">StateFIPS.MASSACHUSETTS</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#night_light.socioeconomic.population_density.get_population_density" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate population density using ACS 5-year survey data.</p>
+<p>This function retrieves population data and geographic shapes for census tracts
+within the specified state, calculates the area of each tract, and computes
+population density. Additional segments of the population (seniors, youths, and
+disabled individuals) can be included if specified, providing corresponding density
+values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year</strong> (<em>int</em><em>, </em><em>optional</em>) – The year for which to fetch the population data. Defaults
+to 2021.</p></li>
+<li><p><strong>state</strong> (<em>StateFIPS</em><em>, </em><em>optional</em>) – The state for which to calculate population
+density, specified using FIPS code Enum. Defaults to
+<cite>StateFIPS.MASSACHUSETTS</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>seniors</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, includes senior population density (ages
+65+).</p></li>
+<li><p><strong>youths</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, includes youth population density (ages 0-17).</p></li>
+<li><p><strong>disabled</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, includes disabled population density.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>A GeoDataFrame containing population density data by census
+tract, with columns for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>”GEOID”</p></li>
+<li><p>”area_km2”</p></li>
+<li><p>”total_population_density”</p></li>
+<li><p>”senior_population_density” (if seniors=True)</p></li>
+<li><p>”youth_population_density” (if youths=True)</p></li>
+<li><p>”disabled_population_density” (if disabled=True)</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>gpd.GeoDataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -283,23 +369,23 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="functions.html">
+          <a class="next-page" href="../../explanations/index.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Utility functions</div>
+                <div class="title">Explanations</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../index.html">
+          <a class="prev-page" href="index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">References</div>
+                <div class="title">Socioeconomic Module</div>
                 
               </div>
             </a>
@@ -321,8 +407,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Population Density</a><ul>
+<li><a class="reference internal" href="#night_light.socioeconomic.population.get_population"><code class="docutils literal notranslate"><span class="pre">get_population()</span></code></a></li>
+<li><a class="reference internal" href="#night_light.socioeconomic.population_density.get_population_density"><code class="docutils literal notranslate"><span class="pre">get_population_density()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

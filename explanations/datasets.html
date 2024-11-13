@@ -211,13 +211,17 @@
 <li class="toctree-l3"><a class="reference internal" href="../references/utils/functions.html">Utility functions</a></li>
 </ul>
 </li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../references/socioeconomic/index.html">Socioeconomic Module</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Socioeconomic Module</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../references/socioeconomic/population.html">Population Density</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Explanations</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Explanations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Explanations</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Explanations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Dataset Choices</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../tests/index.html">Test Modules</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Test Modules</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../tests/index.html">Test Modules</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Test Modules</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../tests/test_adt_query.html">Test Average Annual Daily Traffic Query</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tests/test_crosswalk_query.html">Test Crosswalk Query</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../tests/test_crosswalk_mapping.html">Test Crosswalk Mapping</a></li>
@@ -277,9 +281,35 @@
 <h2>Traffic Dataset<a class="headerlink" href="#traffic-dataset" title="Link to this heading">¶</a></h2>
 <p>Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the <a class="reference external" href="https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&amp;source=sd">following link</a>.</p>
 </section>
+<section id="population-density-dataset">
+<h2>Population Density Dataset<a class="headerlink" href="#population-density-dataset" title="Link to this heading">¶</a></h2>
+<p>The population density data is sourced from the American Community Survey (ACS) 5-year estimates, which provide reliable demographic information on U.S. populations. The ACS data is integrated with geographic data from census tract boundaries to compute the area of each tract and derive population density values.</p>
+<section id="density-calculation-methodology">
+<h3>Density Calculation Methodology<a class="headerlink" href="#density-calculation-methodology" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Geographic Area Calculation</strong>:
+Each census tract is represented by a polygon geometry, and its area is calculated in square kilometers. To ensure accuracy, geometries are reprojected to a projected coordinate system (EPSG:3857) before calculating areas.</p></li>
+<li><p><strong>Population Segments</strong>:
+The dataset includes specific population segments based on age and disability
+status:</p>
+<ul class="simple">
+<li><p><strong>Total Population</strong>: Total number of individuals residing within each tract.</p></li>
+<li><p><strong>Senior Population (65+)</strong>: The population aged 65 years and older.</p></li>
+<li><p><strong>Youth Population (0-17)</strong>: The population aged 17 years and younger.</p></li>
+<li><p><strong>Disabled Population</strong>: Individuals identified as having a disability.</p></li>
+</ul>
+</li>
+<li><p><strong>Density Calculation</strong>:
+Population density for each segment is calculated by dividing the total
+population or segment-specific population by the area of each tract in
+square kilometers. This results in values representing the density of each
+population segment (e.g., seniors per km²).</p></li>
+</ol>
 <section id="streetlights-dataset">
-<h2>Streetlights Dataset<a class="headerlink" href="#streetlights-dataset" title="Link to this heading">¶</a></h2>
+<h4>Streetlights Dataset<a class="headerlink" href="#streetlights-dataset" title="Link to this heading">¶</a></h4>
 <p>The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp">OpenStreetMap features</a> could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the <a class="reference external" href="https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f">following link</a>.</p>
+</section>
+</section>
 </section>
 </section>
 
@@ -341,7 +371,13 @@
 <li><a class="reference internal" href="#">Dataset Choices</a><ul>
 <li><a class="reference internal" href="#crosswalk-dataset">Crosswalk Dataset</a></li>
 <li><a class="reference internal" href="#traffic-dataset">Traffic Dataset</a></li>
+<li><a class="reference internal" href="#population-density-dataset">Population Density Dataset</a><ul>
+<li><a class="reference internal" href="#density-calculation-methodology">Density Calculation Methodology</a><ul>
 <li><a class="reference internal" href="#streetlights-dataset">Streetlights Dataset</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

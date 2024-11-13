@@ -5,18 +5,45 @@ Since creating a synthesized dataset based on multiple datasets is a critical pa
 
 
 Crosswalk Dataset
-*****************
+-----------------
 
 The crosswalk dataset should contain polygons that represent the boundaries of the crosswalks. The dataset ideally should accurately reflect the real world, but there is an implicit understanding that the dataset may not be perfect since most cities do not have a comprehensive dataset of crosswalks. The dataset should be in a format that can be easily read by the software, such as GeoJSON. In the testing module, you'll find the tests for fetching the crosswalk dataset and mapping it for the city of Boston. We've chosen Boston for its relative ease of access to various datasets and physical proximity to the team at Olin College of Engineering.
 
 UMass Amherst has been developing a dataset of all crosswalks in Massachusetts using computer vision model (YOLOv8) and aerial imagery. The dataset is not perfect, but it is a good starting point for our project, and has the potential to be applicable for states that also do not have a thorough catalog of their crosswalk assets. The dataset can be viewed at the `following link <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Assets/Crosswalk_Poly/FeatureServer/0&source=sd>`_.
 
 Traffic Dataset
-***************
+---------------
 
 Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the `following link <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&source=sd>`_.
+
+Population Density Dataset
+--------------------------
+
+The population density data is sourced from the American Community Survey (ACS) 5-year estimates, which provide reliable demographic information on U.S. populations. The ACS data is integrated with geographic data from census tract boundaries to compute the area of each tract and derive population density values.
+
+Density Calculation Methodology
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. **Geographic Area Calculation**:
+   Each census tract is represented by a polygon geometry, and its area is calculated in square kilometers. To ensure accuracy, geometries are reprojected to a projected coordinate system (EPSG:3857) before calculating areas.
+
+2. **Population Segments**:
+   The dataset includes specific population segments based on age and disability
+   status:
+
+   - **Total Population**: Total number of individuals residing within each tract.
+   - **Senior Population (65+)**: The population aged 65 years and older.
+   - **Youth Population (0-17)**: The population aged 17 years and younger.
+   - **Disabled Population**: Individuals identified as having a disability.
+
+3. **Density Calculation**:
+   Population density for each segment is calculated by dividing the total
+   population or segment-specific population by the area of each tract in
+   square kilometers. This results in values representing the density of each
+   population segment (e.g., seniors per km²).
 
 Streetlights Dataset
 ********************
 
 The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, `OpenStreetMap features <https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp>`_ could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the `following link <https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f>`_.
+
