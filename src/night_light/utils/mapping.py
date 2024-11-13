@@ -16,6 +16,14 @@ Tooltip = partial(
         """,
 )
 
+Choropleth = partial(
+    folium.Choropleth,
+    fill_color="YlOrRd",
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    line_weight=0.1,
+)
+
 LAYER_STYLE_DICT = {
     "fillColor": "cyan",
     "color": "black",
