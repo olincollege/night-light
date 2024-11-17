@@ -1,8 +1,5 @@
-from pygris import tracts
 from pygris.data import get_census
 from night_light.utils.fips import StateFIPS
-
-mass_tracts = tracts(state="MA", cb=True, cache=True, year=2021)
 
 
 def get_population(
