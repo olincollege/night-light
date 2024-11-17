@@ -275,11 +275,11 @@
 <section id="crosswalk-dataset">
 <h2>Crosswalk Dataset<a class="headerlink" href="#crosswalk-dataset" title="Link to this heading">¶</a></h2>
 <p>The crosswalk dataset should contain polygons that represent the boundaries of the crosswalks. The dataset ideally should accurately reflect the real world, but there is an implicit understanding that the dataset may not be perfect since most cities do not have a comprehensive dataset of crosswalks. The dataset should be in a format that can be easily read by the software, such as GeoJSON. In the testing module, you’ll find the tests for fetching the crosswalk dataset and mapping it for the city of Boston. We’ve chosen Boston for its relative ease of access to various datasets and physical proximity to the team at Olin College of Engineering.</p>
-<p>UMass Amherst has been developing a dataset of all crosswalks in Massachusetts using computer vision model (YOLOv8) and aerial imagery. The dataset is not perfect, but it is a good starting point for our project, and has the potential to be applicable for states that also do not have a thorough catalog of their crosswalk assets. The dataset can be viewed at the <a class="reference external" href="https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Assets/Crosswalk_Poly/FeatureServer/0&amp;source=sd">following link</a>.</p>
+<p>UMass Amherst has been developing a dataset of all crosswalks in Massachusetts using computer vision model (YOLOv8) and aerial imagery. The dataset is not perfect, but it is a good starting point for our project, and has the potential to be applicable for states that also do not have a thorough catalog of their crosswalk assets. The dataset can be viewed at the <a class="reference external" href="https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Assets/Crosswalk_Poly/FeatureServer/0&amp;source=sd">UMass Crosswalk Dataset</a>.</p>
 </section>
 <section id="traffic-dataset">
 <h2>Traffic Dataset<a class="headerlink" href="#traffic-dataset" title="Link to this heading">¶</a></h2>
-<p>Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the <a class="reference external" href="https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&amp;source=sd">following link</a>.</p>
+<p>Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the <a class="reference external" href="https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&amp;source=sd">MassDOT Traffic Dataset</a>.</p>
 </section>
 <section id="population-density-dataset">
 <h2>Population Density Dataset<a class="headerlink" href="#population-density-dataset" title="Link to this heading">¶</a></h2>
@@ -307,11 +307,23 @@ population segment (e.g., seniors per km²).</p></li>
 </ol>
 <section id="streetlights-dataset">
 <h4>Streetlights Dataset<a class="headerlink" href="#streetlights-dataset" title="Link to this heading">¶</a></h4>
-<p>The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp">OpenStreetMap features</a> could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the <a class="reference external" href="https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f">following link</a>.</p>
+<p>The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, <a class="reference external" href="https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp">OpenStreetMap features</a> could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the <a class="reference external" href="https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f">Boston Streetlight Dataset</a>.</p>
 </section>
 <section id="income-dataset">
 <h4>Income Dataset<a class="headerlink" href="#income-dataset" title="Link to this heading">¶</a></h4>
 <p>The income dataset is also sourced from the American Community Survey (ACS) 5-year estimates. The dataset includes median household income data for each census tract within a specified state and year. The data is used to analyze the relationship between income levels and pedestrian safety, as well as to identify areas with possible infrastructure inequity.</p>
+</section>
+<section id="past-accidents-vision-zero-dataset">
+<h4>Past Accidents Vision Zero Dataset<a class="headerlink" href="#past-accidents-vision-zero-dataset" title="Link to this heading">¶</a></h4>
+<p>We have chosen to use the pedestrian accidents dataset from the Vision Zero initiative in Boston. The dataset contains information about the location of accidents, the date and time of accident, and the severity of the accident (injury/fatality). The dataset is used to identify high-risk areas for pedestrian accidents and to inform the prioritization of crosswalks for safety improvements. The dataset can be viewed at the <a class="reference external" href="https://experience.arcgis.com/experience/bae68e65908f45e1bcc86fe5f089d266/page/">Vision Zero Dataset</a>.</p>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="../_images/Vision_Zero_Network_Community_Map_February_2024.jpg"><img alt="Vision Zero Network Community Map" src="../_images/Vision_Zero_Network_Community_Map_February_2024.jpg" style="width: 1000px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Vision Zero Network Community Map (February 2024)</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Vision Zero initiatives are a nationwide effort to eliminate traffic fatalities and severe injuries. Growing number of cities have contributed to this effort and collected data, which will help this project be applicable outside of Boston as well.</p>
 </section>
 </section>
 </section>
@@ -379,6 +391,7 @@ population segment (e.g., seniors per km²).</p></li>
 <li><a class="reference internal" href="#density-calculation-methodology">Density Calculation Methodology</a><ul>
 <li><a class="reference internal" href="#streetlights-dataset">Streetlights Dataset</a></li>
 <li><a class="reference internal" href="#income-dataset">Income Dataset</a></li>
+<li><a class="reference internal" href="#past-accidents-vision-zero-dataset">Past Accidents Vision Zero Dataset</a></li>
 </ul>
 </li>
 </ul>
