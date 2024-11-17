@@ -47,3 +47,7 @@ Streetlights Dataset
 
 The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, `OpenStreetMap features <https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp>`_ could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the `following link <https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f>`_.
 
+Income Dataset
+**************
+
+The income dataset is also sourced from the American Community Survey (ACS) 5-year estimates. The dataset includes median household income data for each census tract within a specified state and year. The data is used to analyze the relationship between income levels and pedestrian safety, as well as to identify areas with possible infrastructure inequity.
