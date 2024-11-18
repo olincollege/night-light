@@ -50,8 +50,8 @@ def test_query_boston_adt(boston_traffic):
 
 def test_save_boston_geojson(boston_traffic):
     """Test saving the Boston average annual daily traffic to a GeoJSON file"""
-    query_geojson.save_geojson(boston_traffic, "test_boston_crosswalk.geojson")
-    geojson_filename = "test_boston_crosswalk.geojson"
+    query_geojson.save_geojson(boston_traffic, "test_boston_traffic.geojson")
+    geojson_filename = "test_boston_traffic.geojson"
     saved_gdf = query_geojson.gpd.read_file(geojson_filename)
 
     assert boston_traffic.crs == saved_gdf.crs

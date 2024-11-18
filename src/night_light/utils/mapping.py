@@ -16,6 +16,14 @@ Tooltip = partial(
         """,
 )
 
+Choropleth = partial(
+    folium.Choropleth,
+    fill_color="YlOrRd",
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    line_weight=0.1,
+)
+
 LAYER_STYLE_DICT = {
     "fillColor": "cyan",
     "color": "black",
@@ -32,7 +40,7 @@ LAYER_HIGHLIGHT_STYLE_DICT = {
 
 
 def create_folium_map(
-    layers: list[folium.GeoJson],
+    layers: list[folium.map.Layer],
     center: list,
     zoom_start: int,
     map_filename: str,
@@ -45,8 +53,8 @@ def create_folium_map(
     an HTML file.
 
     Args:
-        layers (list[folium.GeoJson]): GeoJson layers containing geometries to be added
-        to the map.
+        layers (list[folium.map.Layer]): Layers containing geometries to be added to the
+            map.
         center (list): A list containing the latitude and longitude for the map center
             [latitude, longitude].
         zoom_start (int): The initial zoom level for the map.
