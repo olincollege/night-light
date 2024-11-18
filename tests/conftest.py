@@ -1,8 +1,11 @@
 import pytest
 from night_light.utils import query_geojson
+from night_light.road_characteristics import traffic_speed_data
 
 MA_CROSSWALK_URL = "https://gis.massdot.state.ma.us/arcgis/rest/services/Assets/Crosswalk_Poly/FeatureServer/0/query"
-MA_TRAFFIC_URL = "https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10/query"
+MA_TRAFFIC_URL = (
+    "https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10/query"
+)
 MA_MUNICIPALITIES_URL = "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Towns_survey_polym/FeatureServer/0/query"
 
 MUNICIPALITIES_MA_PARAMS = {
@@ -15,9 +18,7 @@ MUNICIPALITIES_MA_PARAMS = {
 MA_MUNICIPALITIES = query_geojson.fetch_geojson_data(
     url=MA_MUNICIPALITIES_URL, params=MUNICIPALITIES_MA_PARAMS
 )
-BOSTON_TOWN_ID = MA_MUNICIPALITIES[MA_MUNICIPALITIES["TOWN"] == "BOSTON"][
-    "TOWN_ID"
-].values[0]
+BOSTON_TOWN_ID = MA_MUNICIPALITIES[MA_MUNICIPALITIES["TOWN"] == "BOSTON"]["TOWN_ID"].values[0]
 
 CROSSWALK_BOSTON_PARAMS = {
     "where": "TOWN='BOSTON'",
@@ -36,16 +37,23 @@ TRAFFIC_BOSTON_PARAMS = {
 
 BOSTON_CENTER_COORD = [42.3601, -71.0589]
 
+ROAD_INVENTORY_DATA = "src/night_light/road_characteristics/RoadInventory2023.gdb"
+
 
 @pytest.fixture
 def boston_crosswalk():
-    return query_geojson.fetch_geojson_data(
-        url=MA_CROSSWALK_URL, params=CROSSWALK_BOSTON_PARAMS
-    )
+    return query_geojson.fetch_geojson_data(url=MA_CROSSWALK_URL, params=CROSSWALK_BOSTON_PARAMS)
 
 
 @pytest.fixture
 def boston_traffic():
-    return query_geojson.fetch_geojson_data(
-        url=MA_TRAFFIC_URL, params=TRAFFIC_BOSTON_PARAMS
+    return query_geojson.fetch_geojson_data(url=MA_TRAFFIC_URL, params=TRAFFIC_BOSTON_PARAMS)
+
+
+@pytest.fixture
+def boston_traffic_speed():
+    return query_geojson.save_geodatabase_to_geojson(
+        path_gdf=ROAD_INVENTORY_DATA,
+        filename="tests/test_road_speeds.geojson",
+        params={"City": BOSTON_TOWN_ID},
     )

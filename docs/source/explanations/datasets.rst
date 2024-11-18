@@ -15,3 +15,5 @@ Traffic Dataset
 ***************
 
 Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the `following link <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&source=sd>`_.
+
+To estimate the danger of a road, we also need a dataset with information about speed limits per road. MassDOT provides a database (updated yearly) with speed limits for most roads in Massachusetts. This can be viewed and downloaded at `this link <https://geodot-massdot.hub.arcgis.com/search?groupIds=362562c527bb404884dd1608b4bfdb62>`
