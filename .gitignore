@@ -4,6 +4,9 @@ env/
 .env
 .idea/
 *.pt
+*.DS_Store
+illuminance_results/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
