@@ -30,6 +30,30 @@ def connect_to_duckdb(db_path: str) -> duckdb.DuckDBPyConnection:
     return con
 
 
+def query_table_to_gdf(
+    con: duckdb.DuckDBPyConnection,
+    table_name: str,
+    query: str = None,
+) -> GeoDataFrame:
+    """
+    Query a DuckDB table and return the results as a GeoPandas DataFrame.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
+        table_name (str): Name of the table to query.
+        query (Optional[str]): SQL query to execute. Default is to fetch the first 10 rows.
+
+    Returns:
+        GeoDataFrame: Results of the query.
+    """
+    if query is None:
+        query = "SELECT * FROM {table_name} LIMIT 10".format(table_name=table_name)
+    df = con.execute(query).fetchdf()
+    df["geometry"] = gpd.GeoSeries.from_wkt(df["geometry"])
+    gdf = gpd.GeoDataFrame(df)
+    return gdf
+
+
 def load_data_to_table(
     con: duckdb.DuckDBPyConnection,
     data_source: Union[str, GeoDataFrame],
@@ -56,9 +80,7 @@ def load_data_to_table(
         else data_source
     )
     if not isinstance(gdf, gpd.GeoDataFrame):
-        raise ValueError(
-            "data_source must be a valid GeoJSON file path or GeoDataFrame."
-        )
+        raise ValueError("data_source must be a valid GeoJSON file path or GeoDataFrame.")
 
     # Convert geometry to WKT and ensure compatibility with DuckDB
     if "geometry" in gdf:
@@ -85,45 +107,3 @@ def load_multiple_datasets(
     """
     for data_source, table_name in datasets:
         load_data_to_table(con, data_source, table_name)
-
-
-def query_table_to_gdf(
-    con: duckdb.DuckDBPyConnection,
-    table_name: str,
-    query: str = None,
-) -> GeoDataFrame:
-    """
-    Query a DuckDB table and return the results as a GeoPandas DataFrame.
-
-    Args:
-        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
-        table_name (str): Name of the table to query.
-        query (Optional[str]): SQL query to execute. Default is to fetch the first 10 rows.
-
-    Returns:
-        GeoDataFrame: Results of the query.
-    """
-    if query is None:
-        query = "SELECT * FROM {table_name} LIMIT 10".format(table_name=table_name)
-    df = con.execute(query).fetchdf()
-    df["geometry"] = gpd.GeoSeries.from_wkt(df["geometry"])
-    gdf = gpd.GeoDataFrame(df)
-    return gdf
-
-
-if __name__ == "__main__":
-    db_path = "bronze.db"
-    # Run the scripts in tests to generate the GeoJSON files
-    datasets = [
-        ("../../../tests/test_boston_crosswalk.geojson", "crosswalks"),
-        ("../../../tests/test_boston_streetlights.geojson", "streetlights"),
-        ("../../../tests/test_all_population_density.geojson", "population_density"),
-        ("../../../tests/test_boston_traffic.geojson", "traffic"),
-        ("../../../tests/test_boston_vision_zero.geojson", "accidents"),
-        ("../../../tests/test_ma_median_household_income.geojson", "median_income"),
-    ]
-
-    conn = connect_to_duckdb(db_path)
-    load_multiple_datasets(conn, datasets)
-    gdf = query_table_to_gdf(conn, "crosswalks")
-    print(gdf)
