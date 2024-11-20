@@ -22,8 +22,6 @@ def generate_bronze_db():
 
     conn = util.connect_to_duckdb(db_path)
     util.load_multiple_datasets(conn, datasets)
-    gdf = util.query_table_to_gdf(conn, "crosswalks")
-    return gdf
 
 
 if __name__ == "__main__":
