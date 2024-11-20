@@ -238,7 +238,7 @@ def get_night_life(file_path: str):
     osm_query(query, file_path)
 
 
-def get_resturants(file_path: str):
+def get_restaurants(file_path: str):
     query = """
     [out:json];
     area["name"="Boston"]["boundary"="administrative"];
