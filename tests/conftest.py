@@ -1,5 +1,4 @@
 from night_light.utils import query_geojson
-from night_light.road_characteristics import traffic_speed_data
 
 import pytest
 import asyncio
@@ -11,7 +10,11 @@ MA_TRAFFIC_URL = (
     "https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10/query"
 )
 MA_MUNICIPALITIES_URL = "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Towns_survey_polym/FeatureServer/0/query"
-BOSTON_STREETLIGHTS_URL = "https://services.evari.io/evari/rest/services/Boston/Boston_Read_Only/MapServer/0/query"
+BOSTON_STREETLIGHTS_URL = (
+    "https://services.evari.io/evari/rest/services/Boston/Boston_Read_Only/MapServer/0/query"
+)
+
+BOSTON_TRAFFIC_LIGHTS_URL = "https://gisportal.boston.gov/arcgis/rest/services/Infrastructure/OpenData/MapServer/12/query?outFields=*&where=1%3D1&f=geojson"
 
 MUNICIPALITIES_MA_PARAMS = {
     "where": "1=1",
@@ -101,12 +104,14 @@ def boston_streetlights():
                     features = result.get("features", [])
                     data.extend(features)
                     feature_count = len(features)
-                    if (
-                        not result.get("exceededTransferLimit")
-                        or feature_count < batch_size
-                    ):
+                    if not result.get("exceededTransferLimit") or feature_count < batch_size:
                         return data
 
     data = asyncio.run(fetch_all_data())
     gdf = gpd.GeoDataFrame.from_features(data, crs="EPSG:4326")
     return gdf
+
+
+@pytest.fixture
+def boston_traffic_lights():
+    return query_geojson.fetch_geojson_data(url=BOSTON_TRAFFIC_LIGHTS_URL, params={})
