@@ -17,7 +17,6 @@ Since our project is focused on pedestrian safety at nighttime on crosswalks, we
 
 To estimate the danger of a road, we also need a dataset with information about speed limits per road. MassDOT provides a database (updated yearly) with speed limits for most roads in Massachusetts. This can be viewed and downloaded at `this link <https://geodot-massdot.hub.arcgis.com/search?groupIds=362562c527bb404884dd1608b4bfdb62>`
 
-
 Population Density Dataset
 --------------------------
 
