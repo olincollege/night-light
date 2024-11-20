@@ -15,6 +15,10 @@ Traffic Dataset
 
 Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the `MassDOT Traffic Dataset <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&source=sd>`_.
 
+To estimate the danger of a road, we also need a dataset with information about speed limits per road. MassDOT provides a database (updated yearly) with speed limits for most roads in Massachusetts. This can be viewed and downloaded at `this link <https://geodot-massdot.hub.arcgis.com/search?groupIds=362562c527bb404884dd1608b4bfdb62>`
+
+To get a list of traffic lights, which have a correlation with safer crosswalks, we look into BostonMap's GIS. Although MassDOT does provide a database for the state of Massachusetts, this is pretty sparse and less useful. The dataset used can be found at `this link <https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::traffic-signals/about>`
+
 Population Density Dataset
 --------------------------
 
@@ -79,3 +83,4 @@ Pedestrian generators are establishments and attractions that will draw a flow o
    - **Restaurants**: Restaurants, fast food, food court, ice cream, pizza
 
 Here is more information on each of the tags on the `OSM Website <https://wiki.openstreetmap.org/wiki/Map_features>`.
+
