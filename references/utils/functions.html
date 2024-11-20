@@ -336,6 +336,28 @@ the fetched GeoJSON data.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="night_light.utils.query_geojson.save_geodatabase_to_geojson">
+<span class="sig-prename descclassname"><span class="pre">night_light.utils.query_geojson.</span></span><span class="sig-name descname"><span class="pre">save_geodatabase_to_geojson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_gdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">GeoDataFrame</span></span></span><a class="headerlink" href="#night_light.utils.query_geojson.save_geodatabase_to_geojson" title="Link to this definition">¶</a></dt>
+<dd><p>Given the path to a GeoDataFrame, filter it and save it as a GeoJSON file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_gdf</strong> (<em>str</em>) – The file path to the GeoDataFrame location</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The file path where the GeoJSON will be saved</p></li>
+<li><p><strong>params</strong> (<em>dict</em>) – Dictionary representing parameters to filter geodataframe by</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A GeoDataFrame containing the geometries and properties from
+the fetched GeoJSON data</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>gdf</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="night_light.utils.query_geojson.save_geojson">
 <span class="sig-prename descclassname"><span class="pre">night_light.utils.query_geojson.</span></span><span class="sig-name descname"><span class="pre">save_geojson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GeoDataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#night_light.utils.query_geojson.save_geojson" title="Link to this definition">¶</a></dt>
 <dd><p>Save a GeoDataFrame to a GeoJSON file.</p>
@@ -413,6 +435,7 @@ the fetched GeoJSON data.</p>
 <li><a class="reference internal" href="#night_light.utils.mapping.create_folium_map"><code class="docutils literal notranslate"><span class="pre">create_folium_map()</span></code></a></li>
 <li><a class="reference internal" href="#night_light.utils.mapping.open_html_file"><code class="docutils literal notranslate"><span class="pre">open_html_file()</span></code></a></li>
 <li><a class="reference internal" href="#night_light.utils.query_geojson.fetch_geojson_data"><code class="docutils literal notranslate"><span class="pre">fetch_geojson_data()</span></code></a></li>
+<li><a class="reference internal" href="#night_light.utils.query_geojson.save_geodatabase_to_geojson"><code class="docutils literal notranslate"><span class="pre">save_geodatabase_to_geojson()</span></code></a></li>
 <li><a class="reference internal" href="#night_light.utils.query_geojson.save_geojson"><code class="docutils literal notranslate"><span class="pre">save_geojson()</span></code></a></li>
 </ul>
 </li>
