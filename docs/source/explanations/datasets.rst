@@ -63,3 +63,19 @@ We have chosen to use the pedestrian accidents dataset from the Vision Zero init
     Vision Zero Network Community Map (February 2024)
 
 Vision Zero initiatives are a nationwide effort to eliminate traffic fatalities and severe injuries. Growing number of cities have contributed to this effort and collected data, which will help this project be applicable outside of Boston as well.
+
+Pedestrian Generators
+*********************
+
+Pedestrian generators are establishments and attractions that will draw a flow of people. We focused on making catogories that target light night foot traphic and higher risk populations. To collect the data we used Open Street Map, which has a lot of crowd sourced data. The data is not a complete set, but is a good starting place to look at this attribute. The following are the catogories that we looked for:
+
+   - **Tourist Spots**: Tourism areas, museams, art galleries, attractions, viewpoints, zoo, theme parks, memorials, monument, historic sites
+   - **Schools**: Schools, university, college, language schools
+   - **Health Facalities**: Hospitals, clinics, nursing homes, doctors, dentists, pharamcies, disability services, social facilities, healthcare
+   - **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
+   - **Shopping**: Shops, markets, supermarkets, convenience stores, department stores, clothe stores, shoe stores
+   - **Night Life**: Bars, Pubs, Nightclubs, casinos, cocktail bars, beer gardens, dance centre, drinking water
+   - **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
+   - **Restaurants**: Restaurants, fast food, food court, ice cream, pizza
+
+Here is more information on each of the tags on the `OSM Website <https://wiki.openstreetmap.org/wiki/Map_features>`.
