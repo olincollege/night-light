@@ -22,6 +22,27 @@ def initialize_edge_classifier_db(
     return con
 
 
+def simplify_crosswalk_polygon_to_box(con: duckdb.DuckDBPyConnection):
+    gdf = util.query_table_to_gdf(con, "crosswalks", "SELECT * FROM crosswalks")
+    # Get oriented bounding rectangles
+    gdf["oriented_env"] = gdf["geometry"].apply(
+        lambda geom: geom.minimum_rotated_rectangle
+    )
+    # Write the result back to DuckDB
+    gdf["geometry"] = gdf["oriented_env"].to_wkt()
+    con.register("temp_gdf", gdf[["OBJECTID", "geometry"]])
+    con.execute(
+        """
+            UPDATE crosswalks
+            SET geometry = (
+                SELECT t.geometry
+                FROM temp_gdf t
+                WHERE t.OBJECTID = crosswalks.OBJECTID
+            )
+        """
+    )
+
+
 def decompose_crosswalk_edges(con: duckdb.DuckDBPyConnection):
     """Decompose crosswalks polygons into separate edges."""
     con.execute(
@@ -81,7 +102,7 @@ if __name__ == "__main__":
         "../../road_characteristics/boston_street_segments.geojson",
         "../../../../tests/test_boston_crosswalk.geojson",
     )
-
+    simplify_crosswalk_polygon_to_box(conn)
     decompose_crosswalk_edges(conn)
     classify_edges_by_intersection(conn)
     # save the db table to geojson
