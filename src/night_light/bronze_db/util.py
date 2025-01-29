@@ -70,9 +70,10 @@ def query_table_to_gdf(
         GeoDataFrame: Results of the query.
     """
     df = _query_table_to_df(con, table_name, query)
-    if "geometry" in df and df["geometry"].dtype == "string":
+    if "geometry" in df:
+        # Assume that the geometry column is in WKT format, NOT in geometry objects
         df["geometry"] = gpd.GeoSeries.from_wkt(df["geometry"])
-    gdf = gpd.GeoDataFrame(df)
+    gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
     return gdf
 
 
@@ -102,7 +103,9 @@ def load_data_to_table(
         else data_source
     )
     if not isinstance(gdf, gpd.GeoDataFrame):
-        raise ValueError("data_source must be a valid GeoJSON file path or GeoDataFrame.")
+        raise ValueError(
+            "data_source must be a valid GeoJSON file path or GeoDataFrame."
+        )
 
     # Convert geometry to WKT and ensure compatibility with DuckDB
     if "geometry" in gdf:
