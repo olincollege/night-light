@@ -96,18 +96,18 @@ def classify_edges_by_intersection(con: duckdb.DuckDBPyConnection):
 
 
 if __name__ == "__main__":
-    conn = util.connect_to_duckdb("test_edge_classifier.db")
+    con = util.connect_to_duckdb("edge_classifier.db")
     initialize_edge_classifier_db(
-        conn,
-        "../../road_characteristics/boston_street_segments.geojson",
-        "../../../../tests/test_boston_crosswalk.geojson",
+        con,
+        street_segments_geojson_path="../../road_characteristics/boston_street_segments.geojson",
+        crosswalks_geojson_path="../../../../tests/test_boston_crosswalk.geojson",
     )
-    simplify_crosswalk_polygon_to_box(conn)
-    decompose_crosswalk_edges(conn)
-    classify_edges_by_intersection(conn)
+    simplify_crosswalk_polygon_to_box(con)
+    decompose_crosswalk_edges(con)
+    classify_edges_by_intersection(con)
     # save the db table to geojson
     util.save_table_to_geojson(
-        conn,
+        con,
         "crosswalk_segments",
-        "test_crosswalk_segments.geojson",
+        "crosswalk_segments.geojson",
     )
