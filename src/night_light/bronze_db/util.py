@@ -4,6 +4,8 @@ import geopandas as gpd
 from geopandas import GeoDataFrame
 from typing import List, Tuple, Union
 
+from pandas import DataFrame
+
 
 def connect_to_duckdb(db_path: str) -> duckdb.DuckDBPyConnection:
     """
@@ -30,6 +32,27 @@ def connect_to_duckdb(db_path: str) -> duckdb.DuckDBPyConnection:
     return con
 
 
+def _query_table_to_df(
+    con: duckdb.DuckDBPyConnection,
+    table_name: str,
+    query: str = None,
+) -> DataFrame:
+    """
+    Query a DuckDB table and return the results as a pandas DataFrame.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
+        table_name (str): Name of the table to query.
+        query (Optional[str]): SQL query to execute. Default is to fetch the first 10 rows.
+
+    Returns:
+        DataFrame: Results of the query.
+    """
+    if query is None:
+        query = "SELECT * FROM {table_name} LIMIT 10".format(table_name=table_name)
+    return con.execute(query).fetchdf()
+
+
 def query_table_to_gdf(
     con: duckdb.DuckDBPyConnection,
     table_name: str,
@@ -46,11 +69,11 @@ def query_table_to_gdf(
     Returns:
         GeoDataFrame: Results of the query.
     """
-    if query is None:
-        query = "SELECT * FROM {table_name} LIMIT 10".format(table_name=table_name)
-    df = con.execute(query).fetchdf()
-    df["geometry"] = gpd.GeoSeries.from_wkt(df["geometry"])
-    gdf = gpd.GeoDataFrame(df)
+    df = _query_table_to_df(con, table_name, query)
+    if "geometry" in df:
+        # Assume that the geometry column is in WKT format, NOT in geometry objects
+        df["geometry"] = gpd.GeoSeries.from_wkt(df["geometry"])
+    gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:4326")
     return gdf
 
 
@@ -80,7 +103,9 @@ def load_data_to_table(
         else data_source
     )
     if not isinstance(gdf, gpd.GeoDataFrame):
-        raise ValueError("data_source must be a valid GeoJSON file path or GeoDataFrame.")
+        raise ValueError(
+            "data_source must be a valid GeoJSON file path or GeoDataFrame."
+        )
 
     # Convert geometry to WKT and ensure compatibility with DuckDB
     if "geometry" in gdf:
@@ -107,3 +132,33 @@ def load_multiple_datasets(
     """
     for data_source, table_name in datasets:
         load_data_to_table(con, data_source, table_name)
+
+
+def save_table_to_geojson(
+    con: duckdb.DuckDBPyConnection, table_name: str, filename: str
+) -> None:
+    """
+    Save a DuckDB table to a GeoJSON file.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
+        table_name (str): Name of the table to save.
+        filename (str): Path to the output GeoJSON file.
+    """
+    gdf = query_table_to_gdf(con, table_name, f"SELECT * FROM {table_name}")
+    gdf.to_file(filename, driver="GeoJSON")
+
+
+def save_table_to_parquet(
+    con: duckdb.DuckDBPyConnection, table_name: str, filename: str
+) -> None:
+    """
+    Save a DuckDB table to a parquet file.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
+        table_name (str): Name of the table to save.
+        filename (str): Path to the output parquet file.
+    """
+    df = _query_table_to_df(con, table_name, f"SELECT * FROM {table_name}")
+    df.to_parquet(filename)
