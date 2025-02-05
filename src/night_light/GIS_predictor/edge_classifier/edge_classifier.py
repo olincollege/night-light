@@ -83,14 +83,34 @@ def classify_edges_by_intersection(con: duckdb.DuckDBPyConnection):
         -- 1. Add a new boolean column
         ALTER TABLE crosswalk_segments 
         ADD COLUMN is_vehicle_edge BOOLEAN;
+        ALTER TABLE crosswalk_segments
+        ADD COLUMN street_segment_id INT;
         
         -- 2. Update is_vehicle_edge = TRUE if there's any intersection, otherwise FALSE
         UPDATE crosswalk_segments
-        SET is_vehicle_edge = (
-            SELECT COUNT(*) > 0
-            FROM street_segments s
-            WHERE ST_Intersects(ST_GeomFromText(crosswalk_segments.geometry), ST_GeomFromText(s.geometry))
-        );
+        SET 
+            is_vehicle_edge = (
+                SELECT COUNT(*) > 0
+                FROM street_segments s
+                WHERE ST_Intersects(ST_GeomFromText(crosswalk_segments.geometry), ST_GeomFromText(s.geometry))
+            ), 
+            street_segment_id = (
+                SELECT MAX(t.street_segment_id)
+                FROM (
+                    SELECT cs2.crosswalk_id,
+                           -- For each crosswalk segment of this crosswalk, get one street segment id
+                           (SELECT s.OBJECTID
+                            FROM street_segments s
+                            WHERE ST_Intersects(
+                                     ST_GeomFromText(cs2.geometry),
+                                     ST_GeomFromText(s.geometry)
+                                  )
+                            LIMIT 1
+                           ) AS street_segment_id
+                    FROM crosswalk_segments cs2
+                    WHERE cs2.crosswalk_id = crosswalk_segments.crosswalk_id
+                ) t
+            );
         """
     )
 
