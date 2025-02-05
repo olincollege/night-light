@@ -61,6 +61,8 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
         ped_edge_mid AS (
             SELECT
                 crosswalk_id,
+                street_segment_id,
+                geometry as ped_edge_geom,
                 ST_Point(
                     (
                         ST_X(ST_PointN(ST_GeomFromText(geometry), 1)) +
@@ -77,6 +79,9 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
         centers AS (
             SELECT
                 e.crosswalk_id,
+                e.street_segment_id,
+                e.ped_edge_geom,
+                ST_AsText(i.intersection_center) AS street_center_point,
                 ST_AsText(
                     ST_Point(
                         (ST_X(e.edge_mid) + ST_X(i.intersection_center)) / 2.0,
