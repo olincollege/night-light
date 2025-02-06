@@ -1,8 +1,12 @@
 from night_light.bronze_db.util import connect_to_duckdb
+import datetime
+import night_light.bronze_db.util as util
+
+
 
 def find_streetlights_crosswalk_centers(db_path, dist):
     """
-    Find all of the streetlights within a distance from a crosswalk center.
+    Find all of the streetlights within a distance from each crosswalk center.
 
     Fill in the columns:
     - `streetlight_id`: a list of streetlight IDs (ints) within the specified distance from each crosswalk centerpoint
@@ -12,43 +16,61 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         db_path: Path to the database containing the tables
         dist: int of meters to search for streetlights near each crosswalk centerpoint
     """
+    print(datetime.datetime.now())
     conn = connect_to_duckdb(db_path)
 
-    # Go through all of the centerpoints and find the street lights and distances
-    crosswalks = conn.execute("SELECT crosswalk_id, geometry FROM crosswalk_centers_lights").fetchall()
-    for crosswalk in crosswalks:
-        # crosswalk_id = crosswalk[0]
-        centerpoint = crosswalk[1]
+    # Query that retrieves all crosswalks with their nearby streetlights and distances
+    query = """
+    WITH nearby_streetlights AS (
+        SELECT
+            crosswalk_centers_lights.crosswalk_id,
+            crosswalk_centers_lights.geometry AS crosswalk_geometry,
+            streetlights.OBJECTID AS streetlight_id,
+            ST_Distance_Sphere(ST_GeomFromText(streetlights.geometry), ST_GeomFromText(crosswalk_centers_lights.geometry)) AS dist
+        FROM
+            crosswalk_centers_lights
+        JOIN streetlights
+            ON ST_DWithin_Spheroid(
+                ST_GeomFromText(streetlights.geometry), 
+                ST_GeomFromText(crosswalk_centers_lights.geometry),
+                ?
+            )
+    )
+    SELECT
+        crosswalk_id,
+        crosswalk_geometry,
+        array_agg(streetlight_id) AS streetlight_ids,
+        array_agg(dist) AS streetlight_dists
+    FROM nearby_streetlights
+    GROUP BY crosswalk_id, crosswalk_geometry
+    """
 
-        # Parse the coordinates into floats to work with query formatting
-        point_coords = centerpoint[7:-1].split()
-        lon, lat = float(point_coords[0]), float(point_coords[1])
+    # Execute the query to get all results
+    crosswalks_streetlights = conn.execute(query, (dist,)).fetchall()
 
-        query = """
-        SELECT streetlights.OBJECTID, 
-               ST_Distance_Sphere(ST_GeomFromText(streetlights.geometry), ST_Point(?, ?)) AS dist
-        FROM streetlights
-        WHERE ST_DWithin_Spheroid(
-            ST_GeomFromText(streetlights.geometry), 
-            ST_Point(?, ?), 
-            ?
-        )
-        """
-        nearby_streetlights = conn.execute(query, (lon, lat, lon, lat, dist)).fetchall()
-       
-        # Extract the results
-        streetlight_ids = [row[0] for row in nearby_streetlights]
-        streetlight_distances = [row[1] for row in nearby_streetlights]
+    print(datetime.datetime.now())
+    print("done with first query")
 
-        # Add the new data to the table
+    # Update crosswalk_centers_lights with the streetlight data
+    for crosswalk in crosswalks_streetlights:
+        crosswalk_geometry = crosswalk[1]  # crosswalk geometry as POINT
+        streetlight_ids = crosswalk[2]    # List of streetlight IDs
+        streetlight_dists = crosswalk[3]  # List of distances for each streetlight
+
+        # Execute update with the geometry of the crosswalk
         conn.execute("""
             UPDATE crosswalk_centers_lights
             SET streetlight_id = ?, streetlight_dist = ?
             WHERE geometry = ?
-            """, (streetlight_ids, streetlight_distances, centerpoint))
+        """, (streetlight_ids, streetlight_dists, crosswalk_geometry))
 
-    conn.commit()  
-    print(f"Updated crosswalk_centers_lights for {len(crosswalks)} crosswalks.")
+    conn.commit()
+
+    print(datetime.datetime.now())
+    print(f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks.")
+
+
+
 
 
 def create_crosswalk_centers_lights(con):
@@ -88,9 +110,17 @@ def add_streetlights_to_edge_classifier():
     conn_edge.close()
 
 
+
+
 if __name__ == "__main__":
-    db_path = "edge_classifier.db"
+    db_path = "edge_classifier5.db"
     conn = connect_to_duckdb(db_path)
-    add_streetlights_to_edge_classifier()
-    create_crosswalk_centers_lights(conn)
-    find_streetlights_crosswalk_centers(db_path, 30)
+    # # add_streetlights_to_edge_classifier()
+    # # create_crosswalk_centers_lights(conn)
+    find_streetlights_crosswalk_centers(db_path, 20)
+
+    # util.save_table_to_geojson(
+    #     conn,
+    #     "crosswalk_centers_lights",
+    #     "crosswalk_centers_lights.geojson",
+    # )
