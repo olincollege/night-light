@@ -1,6 +1,6 @@
 from night_light.bronze_db.util import connect_to_duckdb
 import datetime
-import night_light.bronze_db.util as util
+import math
 
 
 
@@ -19,18 +19,17 @@ def find_streetlights_crosswalk_centers(db_path, dist):
     print(datetime.datetime.now())
     conn = connect_to_duckdb(db_path)
 
-    # Query that retrieves all crosswalks with their nearby streetlights and distances
     query = """
     WITH nearby_streetlights AS (
         SELECT
             crosswalk_centers_lights.crosswalk_id,
             crosswalk_centers_lights.geometry AS crosswalk_geometry,
             streetlights.OBJECTID AS streetlight_id,
-            ST_Distance_Sphere(ST_GeomFromText(streetlights.geometry), ST_GeomFromText(crosswalk_centers_lights.geometry)) AS dist
+            streetlights.geometry AS streetlight_geometry
         FROM
             crosswalk_centers_lights
         JOIN streetlights
-            ON ST_DWithin_Spheroid(
+            ON ST_DWithin(
                 ST_GeomFromText(streetlights.geometry), 
                 ST_GeomFromText(crosswalk_centers_lights.geometry),
                 ?
@@ -40,24 +39,25 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         crosswalk_id,
         crosswalk_geometry,
         array_agg(streetlight_id) AS streetlight_ids,
-        array_agg(dist) AS streetlight_dists
+        array_agg(ST_Distance_Sphere(streetlight_geometry::GEOMETRY, crosswalk_geometry::GEOMETRY)) AS streetlight_dists
     FROM nearby_streetlights
     GROUP BY crosswalk_id, crosswalk_geometry
+
     """
 
-    # Execute the query to get all results
-    crosswalks_streetlights = conn.execute(query, (dist,)).fetchall()
+    dist_degrees = meters_to_degrees(dist)
+
+    # Execute the query
+    crosswalks_streetlights = conn.execute(query, (dist_degrees,)).fetchall()
 
     print(datetime.datetime.now())
-    print("done with first query")
 
     # Update crosswalk_centers_lights with the streetlight data
     for crosswalk in crosswalks_streetlights:
-        crosswalk_geometry = crosswalk[1]  # crosswalk geometry as POINT
-        streetlight_ids = crosswalk[2]    # List of streetlight IDs
-        streetlight_dists = crosswalk[3]  # List of distances for each streetlight
+        crosswalk_geometry = crosswalk[1]
+        streetlight_ids = crosswalk[2]
+        streetlight_dists = crosswalk[3]
 
-        # Execute update with the geometry of the crosswalk
         conn.execute("""
             UPDATE crosswalk_centers_lights
             SET streetlight_id = ?, streetlight_dist = ?
@@ -68,8 +68,6 @@ def find_streetlights_crosswalk_centers(db_path, dist):
 
     print(datetime.datetime.now())
     print(f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks.")
-
-
 
 
 
@@ -110,10 +108,31 @@ def add_streetlights_to_edge_classifier():
     conn_edge.close()
 
 
+def meters_to_degrees(meters, latitude=42.3601):
+    """
+    Convert meters to degrees
+
+    Rough calculation that defults the location to boston. Calculation
+    will tend to be an overestimates. It will pick which ever degree value
+    is bigger between lat and long.
+
+    args:
+        meters: int 
+        latitude: int (defaults to boston) 
+    
+    returns:
+        int in degrees 
+    """
+    latitude_change = meters / 111320
+    longitude_change = meters / (111320 * math.cos(math.radians(latitude)))
+
+    if longitude_change > latitude_change:
+        return longitude_change
+    return latitude_change
 
 
 if __name__ == "__main__":
-    db_path = "edge_classifier5.db"
+    db_path = "edge_classifier.db"
     conn = connect_to_duckdb(db_path)
     # # add_streetlights_to_edge_classifier()
     # # create_crosswalk_centers_lights(conn)
