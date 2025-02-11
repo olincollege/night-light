@@ -92,8 +92,22 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
             JOIN intersection_mid i USING (crosswalk_id)
         )
         SELECT
-            *
-        FROM centers;
+            crosswalk_id,
+            street_segment_id,
+            ped_edge_geom,
+            street_center_point,
+            geometry,
+            CASE 
+                WHEN rn = 1 THEN 'A'
+                WHEN rn = 2 THEN 'B'
+                ELSE NULL
+            END AS center_id
+        FROM (
+            SELECT
+                *,
+                ROW_NUMBER() OVER (PARTITION BY crosswalk_id ORDER BY geometry) AS rn
+            FROM centers
+        ) sub;
         """
     )
 
