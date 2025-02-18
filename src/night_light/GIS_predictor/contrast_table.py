@@ -4,8 +4,7 @@ from shapely.wkt import loads
 """
 
 """
-def contrast_table():
-    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier_lights.db")
+def contrast_table(con):
     con.execute("""
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_heuristic FLOAT;
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_heuristic FLOAT;
@@ -24,9 +23,7 @@ def contrast_table():
                 )
                 """)
     
-    con2 = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
-
-    direction_vectors = con2.execute("""SELECT crosswalk_id, geometry, from_coord FROM crosswalk_centers""").fetchall()
+    direction_vectors = con.execute("""SELECT crosswalk_id, geometry, from_coord FROM crosswalk_centers""").fetchall()
 
     for row in direction_vectors:
         crosswalk_id = row[0]
@@ -35,14 +32,15 @@ def contrast_table():
         from_x, from_y = get_coords(from_coord)
 
         matching_crosswalks = con.execute("""
-                                          SELECT * 
+                                          SELECT street_center_point
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
                                           """, (crosswalk_id,)).fetchall()
         
+        
         if len(matching_crosswalks) > 1:
-            center1 = matching_crosswalks[0][1]
-            center2 = matching_crosswalks[1][1]
+            center1 = matching_crosswalks[0][0]
+            center2 = matching_crosswalks[1][0]
 
             center_x1, center_y1 = get_coords(center1)
             center_x2, center_y2 = get_coords(center2)
@@ -60,7 +58,6 @@ def contrast_table():
                     )
                     """)
 
-    con.commit()
 
 def get_coords(point):
     point = point[point.index('(') + 1:point.index(')')]
@@ -68,11 +65,10 @@ def get_coords(point):
     y = float(point[point.index(" ") + 1:])
     return x, y
 
-def classify_lights_table():
+def classify_lights_table(con):
     """
     Goes through each row and creates 2 lists (a and b)
     """
-    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier_lights.db")
     con.execute("""
                 CREATE TABLE IF NOT EXISTS crosswalk_centers_classified_lights AS
                 SELECT crosswalk_id, geometry FROM crosswalk_centers_lights
@@ -97,22 +93,23 @@ def classify_lights_table():
         light_geoms = crosswalk[4]
 
         matching_crosswalks = con.execute("""
-                                          SELECT * 
+                                          SELECT street_center_point 
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
                                           """, (crosswalk_id,)).fetchall()
-        
-        if light_geoms is not None:
-            light_geoms = light_geoms.split(',')
-            light_coords = [get_coords(coord) for coord in light_geoms]
+        if light_geoms is None:
+            continue
+            
+        light_geoms = light_geoms.split(',')
+        light_coords = [get_coords(coord) for coord in light_geoms]
 
         if len(matching_crosswalks) > 1:
-            center1 = matching_crosswalks[0][1]
-            center2 = matching_crosswalks[1][1]
+            center1 = matching_crosswalks[0][0]
+            center2 = matching_crosswalks[1][0]
 
             center_x1, center_y1 = get_coords(center1)
             center_x2, center_y2 = get_coords(center2)
-
+        
         a_streetlight_id = []
         a_streetlight_dist = []
         a_streetlight_geom = []
@@ -120,19 +117,18 @@ def classify_lights_table():
         b_streetlight_dist = []
         b_streetlight_geom = []
 
-        if light_geoms is not None:
-            for i, _ in enumerate(light_geoms):
-                light_x, light_y = light_coords[i]
+        for i, _ in enumerate(light_geoms):
+            light_x, light_y = light_coords[i]
 
-                direction = (light_x - center_x1)*(center_y2 - center_y1) - (light_y - center_y1)*(center_x2-center_x1)
-                if direction < 0:
-                    a_streetlight_id.append(light_ids[i])
-                    a_streetlight_dist.append(light_dists[i])
-                    a_streetlight_geom.append(light_geoms[i])
-                else:
-                    b_streetlight_id.append(light_ids[i])
-                    b_streetlight_dist.append(light_dists[i])
-                    b_streetlight_geom.append(light_geoms[i])
+            direction = ((light_x - center_x1)*(center_y2 - center_y1)) - ((light_y - center_y1)*(center_x2-center_x1))
+            if direction < 0:
+                a_streetlight_id.append(light_ids[i])
+                a_streetlight_dist.append(light_dists[i])
+                a_streetlight_geom.append(light_geoms[i])
+            else:
+                b_streetlight_id.append(light_ids[i])
+                b_streetlight_dist.append(light_dists[i])
+                b_streetlight_geom.append(light_geoms[i])
 
         con.execute("""
                     UPDATE crosswalk_centers_classified_lights
@@ -145,14 +141,11 @@ def classify_lights_table():
                         b_streetlight_geom = ?
                     WHERE geometry = ?
                     """, (a_streetlight_id, a_streetlight_dist, a_streetlight_geom, b_streetlight_id, b_streetlight_dist, b_streetlight_geom, center))
-    con.commit()
 
 
-def lights_geom():
+def lights_geom(con):
     """
     """
-    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier_lights.db")
-
     con.execute("ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_geom VARCHAR(1000)")
 
     con.execute("""
@@ -164,15 +157,22 @@ def lights_geom():
                         ON s.OBJECTID = split_ids.id
                     )
                 """)
-    con.commit()
 
 if __name__ == "__main__":
     # lights_geom()
-    # classify_lights_table()
+
+
     # contrast_table()
-    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier_lights.db")
-    con2 = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
-    gdf = util.query_table_to_gdf(con, "crosswalk_centers_classified_lights", "SELECT * FROM crosswalk_centers_classified_lights")
-    print(gdf[gdf['crosswalk_id'] == 49617])
+    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
+    print(classify_lights_table(con))
+
+    # util.save_table_to_geojson(
+    #     con,
+    #     "crosswalk_centers_classified_lights",
+    #     "crosswalk_centers_classified_lights.geojson",
+    # )
+    # con2 = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
+    # gdf = util.query_table_to_gdf(con, "crosswalk_centers_classified_lights")
+    # print((gdf.columns))
 
     

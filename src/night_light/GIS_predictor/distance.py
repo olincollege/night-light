@@ -64,7 +64,7 @@ def find_streetlights_crosswalk_centers(db_path, dist):
             WHERE geometry = ?
         """, (streetlight_ids, streetlight_dists, crosswalk_geometry))
 
-    conn.commit()
+    # conn.commit()
 
     print(datetime.datetime.now())
     print(f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks.")
@@ -95,17 +95,15 @@ def create_crosswalk_centers_lights(con):
         ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_dist FLOAT[]
     """)
 
-def add_streetlights_to_edge_classifier():
+def add_streetlights_to_edge_classifier(conn):
     """
     Add the street light table to edge_classifier
     """
-    conn_edge = connect_to_duckdb('edge_classifier.db')
-    conn_edge.execute("ATTACH 'bronze.db' AS bronze;")
-    conn_edge.execute("""
+    conn.execute("ATTACH 'bronze.db' AS bronze;")
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS streetlights AS 
         SELECT * FROM bronze.streetlights;
     """)
-    conn_edge.close()
 
 
 def meters_to_degrees(meters, latitude=42.3601):
@@ -135,7 +133,7 @@ if __name__ == "__main__":
     db_path = "edge_classifier.db"
     conn = connect_to_duckdb(db_path)
     # # add_streetlights_to_edge_classifier()
-    # # create_crosswalk_centers_lights(conn)
+    create_crosswalk_centers_lights(conn)
     find_streetlights_crosswalk_centers(db_path, 20)
 
     # util.save_table_to_geojson(
