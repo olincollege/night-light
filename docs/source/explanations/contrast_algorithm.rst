@@ -58,4 +58,18 @@ TODO
 
 6. **Compute Contrast Heuristics**:
 
-TODO
+- Given a crosswalk ID with the two center IDs associated with it, find the equation of the line that that connects the two center points called the centerline.
+- For each center ID, get the list of lamppost coordinates and determine which side of the centerline each lamppost falls on using z = (x-x\ :sub:`1`)(y\ :sub:`2`-y\ :sub:`1`) - (y-y\ :sub:`1`)(x\ :sub:`2`-x\ :sub:`1`), where (x,y) are the lamppost coordinates and (x\ :sub:`1`,y\ :sub:`1`) and (x\ :sub:`2`,y\ :sub:`2`) are the coordinates of the two center points.
+    - If the lamppost falls on the left side of the centerline (z < 0), then it's assigned to Group A.
+    - If the lamppost falls on the right side of the centerline (z > 0), then it's assigned to Group B.
+- Calculate the brightness heuristic B for each lamppost group using the lamppost's distances from the center point and the equation B = 1/d\ :sub:`1`\ :sup:`2` + 1/d\ :sub:`2`\ :sup:`2` + ... 1/d\ :sub:`x`\ :sup:`2`
+- Determine contrast using the brightness heuristic B and the direction of the car. 
+    - If the car is going from left to right, and it's brighter on the left side of the centerline (Group A is brighter than Group B), then the contrast is positive.
+    - If the car is going from right to left, and it's brighter on the right side of the centerline (Group B is brighter than Group A), then the contrast is positive.
+    - If the car is going from left to right, and it's brighter on the right side of the centerline (Group B is brighter than Group A), then the contrast is negative.
+    - If the car is going from right to left, and it's brighter on the left side of the centerline (Group A is brighter than Group B). then the contrast is negative.
+    
+.. image:: ../_static/images/crosswalk_diagram.png
+  :width: 600
+  :align: center
+  :alt: Diagram of a two-way street
