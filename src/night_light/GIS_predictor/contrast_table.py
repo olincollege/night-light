@@ -1,62 +1,32 @@
 def contrast_table(con):
     con.execute("""
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_heuristic FLOAT;
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_heuristic FLOAT;
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_heuristic FLOAT;
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_heuristic FLOAT;
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS contrast_heuristic VARCHAR(500);
                 """)
     
     con.execute("""
                 UPDATE crosswalk_centers_classified_lights as c
-                SET a_heuristic = (
+                SET from_side_heuristic = (
                     SELECT SUM(1.0 / (d.value * d.value))
-                    FROM UNNEST(c.a_streetlight_dist) AS d(value)
+                    FROM UNNEST(c.from_side_streetlight_dist) AS d(value)
                 ),
-                b_heuristic = (
+                to_side_heuristic = (
                     SELECT SUM(1.0 / (d.value * d.value))
-                    FROM UNNEST(c.b_streetlight_dist) AS d(value)
+                    FROM UNNEST(c.to_side_streetlight_dist) AS d(value)
                 )
                 """)
     
-    direction_vectors = con.execute("""SELECT crosswalk_id, geometry, from_coord FROM crosswalk_centers_lights""").fetchall()
-
-    for row in direction_vectors:
-        crosswalk_id = row[0]
-        from_coord = row[2]
-
-        from_x, from_y = get_coords(from_coord)
-
-        matching_crosswalks = con.execute("""
-                                          SELECT geometry
-                                          FROM crosswalk_centers_lights
-                                          WHERE crosswalk_id = ?
-                                          """,
-            (crosswalk_id,),
-        ).fetchall()
-
-        if len(matching_crosswalks) > 1:
-            center1 = matching_crosswalks[0][0]
-            center2 = matching_crosswalks[1][0]
-
-            center_x1, center_y1 = get_coords(center1)
-            center_x2, center_y2 = get_coords(center2)
-
-        direction = (from_x - center_x1) * (center_y2 - center_y1) - (
-            from_y - center_y1
-        ) * (center_x2 - center_x1)
-        con.execute(
-            f"""
-                    UPDATE crosswalk_centers_classified_lights as c
-                    SET contrast_heuristic = (
-                        CASE
-                            WHEN {direction} < 0 AND c.a_heuristic > c.b_heuristic THEN 'positive contrast'
-                            WHEN {direction} < 0 AND c.b_heuristic > c.a_heuristic THEN 'negative contrast'
-                            WHEN {direction} > 0 AND c.a_heuristic > c.b_heuristic THEN 'negative contrast'
-                            WHEN {direction} > 0 AND c.b_heuristic > c.a_heuristic THEN 'positive contrast'
-                        END
-                    )
-                    """
-        )
-
+    con.execute("""
+                UPDATE crosswalk_centers_classified_lights as c
+                SET contrast_heuristic = (
+                    CASE
+                        WHEN c.from_side_heuristic > c.to_side_heuristic THEN 'positive contrast'
+                        WHEN c.from_side_heuristic < c.to_side_heuristic THEN 'negative contrast'
+                    END
+                )
+                """)
+    
 
 def get_coords(point):
     point = point[point.index("(") + 1 : point.index(")")]
@@ -67,7 +37,7 @@ def get_coords(point):
 
 def classify_lights_table(con):
     """
-    Goes through each row and creates 2 lists (a and b)
+    Goes through each row and creates 2 lists (from_side and to_side)
     """
     con.execute(
         """
@@ -78,12 +48,12 @@ def classify_lights_table(con):
 
     con.execute(
         """
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_id INTEGER[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_dist FLOAT[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_geom VARCHAR(1000);
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_id INTEGER[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_dist FLOAT[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_geom VARCHAR(1000);
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_id INTEGER[];
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_dist FLOAT[];
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_geom VARCHAR(1000);
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_id INTEGER[];
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_dist FLOAT[];
+                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_geom VARCHAR(1000);
                 """
     )
 
@@ -98,69 +68,85 @@ def classify_lights_table(con):
         light_dists = crosswalk[3]
         light_geoms = crosswalk[4]
 
-        matching_crosswalks = con.execute(
-            """
-                                          SELECT geometry 
-                                          FROM crosswalk_centers_lights
-                                          WHERE crosswalk_id = ?
-                                          """,
-            (crosswalk_id,),
+        crosswalk_A = con.execute("""
+                                  SELECT geometry, from_coord 
+                                  FROM crosswalk_centers_lights
+                                  WHERE crosswalk_id = ? AND center_id = ?
+                                  """, (crosswalk_id, 'A')
         ).fetchall()
 
+        crosswalk_B = con.execute("""
+                                  SELECT geometry, from_coord
+                                  FROM crosswalk_centers_lights
+                                  WHERE crosswalk_id = ? AND center_id = ?
+                                  """, (crosswalk_id, 'B')
+        ).fetchall()
+        
         if light_geoms is None:
             continue
 
         light_geoms = light_geoms.split(",")
         light_coords = [get_coords(coord) for coord in light_geoms]
 
-        if len(matching_crosswalks) > 1:
-            center1 = matching_crosswalks[0][0]
-            center2 = matching_crosswalks[1][0]
+        if crosswalk_A != [] and crosswalk_B != []:
+            centerA = crosswalk_A[0][0]
+            centerB = crosswalk_B[0][0]
 
-            center_x1, center_y1 = get_coords(center1)
-            center_x2, center_y2 = get_coords(center2)
+            fromA = crosswalk_A[0][1]
+            fromB = crosswalk_B[0][1]
 
-        a_streetlight_id = []
-        a_streetlight_dist = []
-        a_streetlight_geom = []
-        b_streetlight_id = []
-        b_streetlight_dist = []
-        b_streetlight_geom = []
+            center_xA, center_yA = get_coords(centerA)
+            center_xB, center_yB = get_coords(centerB)
+
+            from_xA, from_yA = get_coords(fromA)
+            from_xB, from_yB = get_coords(fromB)
+    
+        from_side_streetlight_id = []
+        from_side_streetlight_dist = []
+        from_side_streetlight_geom = []
+        to_side_streetlight_id = []
+        to_side_streetlight_dist = []
+        to_side_streetlight_geom = []
 
         for i, _ in enumerate(light_geoms):
             light_x, light_y = light_coords[i]
 
-            direction = ((light_x - center_x1) * (center_y2 - center_y1)) - (
-                (light_y - center_y1) * (center_x2 - center_x1)
+            direction_light = ((light_x - center_xA) * (center_yB - center_yA)) - (
+                (light_y - center_yA) * (center_xB - center_xA)
             )
-            if direction < 0:
-                a_streetlight_id.append(light_ids[i])
-                a_streetlight_dist.append(light_dists[i])
-                a_streetlight_geom.append(light_geoms[i])
+
+            direction_from = ((light_x - from_xA) * (from_yB - from_yA)) - (
+                (light_y - from_yA) * (from_xB - from_xA)
+            )
+
+            if (direction_light > 0) == (direction_from > 0):
+                from_side_streetlight_id.append(light_ids[i])
+                from_side_streetlight_dist.append(light_dists[i])
+                from_side_streetlight_geom.append(light_geoms[i])
             else:
-                b_streetlight_id.append(light_ids[i])
-                b_streetlight_dist.append(light_dists[i])
-                b_streetlight_geom.append(light_geoms[i])
+                to_side_streetlight_id.append(light_ids[i])
+                to_side_streetlight_dist.append(light_dists[i])
+                to_side_streetlight_geom.append(light_geoms[i])
 
         con.execute(
             """
                     UPDATE crosswalk_centers_classified_lights
                     SET 
-                        a_streetlight_id = ?,
-                        a_streetlight_dist = ?,
-                        a_streetlight_geom = ?,
-                        b_streetlight_id = ?,
-                        b_streetlight_dist = ?,
-                        b_streetlight_geom = ?
+                        from_side_streetlight_id = ?,
+                        from_side_streetlight_dist = ?,
+                        from_side_streetlight_geom = ?,
+                        to_side_streetlight_id = ?,
+                        to_side_streetlight_dist = ?,
+                        to_side_streetlight_geom = ?
                     WHERE geometry = ?
                     """,
             (
-                a_streetlight_id,
-                a_streetlight_dist,
-                a_streetlight_geom,
-                b_streetlight_id,
-                b_streetlight_dist,
-                b_streetlight_geom,
+                from_side_streetlight_id,
+                from_side_streetlight_dist,
+                from_side_streetlight_geom,
+                to_side_streetlight_id,
+                to_side_streetlight_dist,
+                to_side_streetlight_geom,
                 center,
             ),
         )
