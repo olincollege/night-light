@@ -20,12 +20,6 @@ def generate_bronze_db_mini():
     util.load_multiple_datasets(conn, datasets)
 
 if __name__ == "__main__":
-    # Generate bronze database from geojson
-    generate_bronze_db_mini() 
-
-    # Generate silver database for crosswalks
-    crosswalk.generate_silver_crosswalks() 
-
     # Get edges of crosswalks
     conn = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
     edge_classifier.initialize_edge_classifier_db(

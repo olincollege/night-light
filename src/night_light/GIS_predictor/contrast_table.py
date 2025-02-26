@@ -93,10 +93,11 @@ def classify_lights_table(con):
         light_geoms = crosswalk[4]
 
         matching_crosswalks = con.execute("""
-                                          SELECT street_center_point 
+                                          SELECT geometry 
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
                                           """, (crosswalk_id,)).fetchall()
+        
         if light_geoms is None:
             continue
             
