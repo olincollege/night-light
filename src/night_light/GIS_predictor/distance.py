@@ -16,22 +16,28 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         db_path: Path to the database containing the tables
         dist: int of meters to search for streetlights near each crosswalk centerpoint
     """
-    print(datetime.datetime.now())
     conn = connect_to_duckdb(db_path)
+
+    print(datetime.datetime.now())
+
+    long_lat_flipper(conn, "streetlights")
+    long_lat_flipper(conn, "crosswalk_centers_lights")
+
+    print(datetime.datetime.now())
 
     query = """
     WITH nearby_streetlights AS (
         SELECT
             crosswalk_centers_lights.crosswalk_id,
-            crosswalk_centers_lights.geometry AS crosswalk_geometry,
+            crosswalk_centers_lights.new_geometry AS crosswalk_geometry,
             streetlights.OBJECTID AS streetlight_id,
-            streetlights.geometry AS streetlight_geometry
+            streetlights.new_geometry AS streetlight_geometry
         FROM
             crosswalk_centers_lights
         JOIN streetlights
             ON ST_DWithin(
-                ST_GeomFromText(streetlights.geometry), 
-                ST_GeomFromText(crosswalk_centers_lights.geometry),
+                ST_GeomFromText(streetlights.new_geometry), 
+                ST_GeomFromText(crosswalk_centers_lights.new_geometry),
                 ?
             )
     )
@@ -42,7 +48,6 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         array_agg(ST_Distance_Sphere(streetlight_geometry::GEOMETRY, crosswalk_geometry::GEOMETRY)) AS streetlight_dists
     FROM nearby_streetlights
     GROUP BY crosswalk_id, crosswalk_geometry
-
     """
 
     dist_degrees = meters_to_degrees(dist)
@@ -50,7 +55,7 @@ def find_streetlights_crosswalk_centers(db_path, dist):
     # Execute the query
     crosswalks_streetlights = conn.execute(query, (dist_degrees,)).fetchall()
 
-    print(datetime.datetime.now())
+    print(datetime.datetime.now(), "adding to db")
 
     # Update crosswalk_centers_lights with the streetlight data
     for crosswalk in crosswalks_streetlights:
@@ -61,13 +66,29 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         conn.execute("""
             UPDATE crosswalk_centers_lights
             SET streetlight_id = ?, streetlight_dist = ?
-            WHERE geometry = ?
+            WHERE new_geometry = ?
         """, (streetlight_ids, streetlight_dists, crosswalk_geometry))
 
     # conn.commit()
 
     print(datetime.datetime.now())
     print(f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks.")
+
+
+def long_lat_flipper(conn, table):
+    """
+    Flips the coordinate so that they are in lat, long order instead of long, lat
+    """
+    query = f"""
+    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS new_geometry TEXT;
+    
+    UPDATE {table}
+    SET new_geometry = ST_AsText(
+        ST_Point(ST_Y(ST_GeomFromText(geometry)), ST_X(ST_GeomFromText(geometry)))
+    );
+    """
+    conn.execute(query)
+    print("flipped coords")
 
 
 
@@ -130,7 +151,7 @@ def meters_to_degrees(meters, latitude=42.3601):
 
 
 if __name__ == "__main__":
-    db_path = "edge_classifier.db"
+    db_path = "edge_classifier_lights3.db"
     conn = connect_to_duckdb(db_path)
     # # add_streetlights_to_edge_classifier()
     create_crosswalk_centers_lights(conn)
