@@ -1,7 +1,5 @@
 import duckdb
 
-from night_light.bronze_db import util
-
 
 def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
     """
@@ -109,14 +107,4 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
             FROM centers
         ) sub;
         """
-    )
-
-
-if __name__ == "__main__":
-    con = util.connect_to_duckdb("edge_classifier/edge_classifier.db")
-    find_crosswalk_centers(con)
-    util.save_table_to_geojson(
-        con,
-        "crosswalk_centers",
-        "crosswalk_centers.geojson",
     )

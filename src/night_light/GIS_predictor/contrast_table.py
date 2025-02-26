@@ -1,9 +1,3 @@
-import night_light.bronze_db.util as util
-from shapely.wkt import loads
-
-"""
-
-"""
 def contrast_table(con):
     con.execute("""
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_heuristic FLOAT;
@@ -35,9 +29,10 @@ def contrast_table(con):
                                           SELECT geometry
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
-                                          """, (crosswalk_id,)).fetchall()
-        
-        
+                                          """,
+            (crosswalk_id,),
+        ).fetchall()
+
         if len(matching_crosswalks) > 1:
             center1 = matching_crosswalks[0][0]
             center2 = matching_crosswalks[1][0]
@@ -45,8 +40,11 @@ def contrast_table(con):
             center_x1, center_y1 = get_coords(center1)
             center_x2, center_y2 = get_coords(center2)
 
-        direction = (from_x - center_x1)*(center_y2 - center_y1) - (from_y - center_y1)*(center_x2-center_x1)
-        con.execute(f"""
+        direction = (from_x - center_x1) * (center_y2 - center_y1) - (
+            from_y - center_y1
+        ) * (center_x2 - center_x1)
+        con.execute(
+            f"""
                     UPDATE crosswalk_centers_classified_lights as c
                     SET contrast_heuristic = (
                         CASE
@@ -56,34 +54,42 @@ def contrast_table(con):
                             WHEN {direction} > 0 AND c.b_heuristic > c.a_heuristic THEN 'positive contrast'
                         END
                     )
-                    """)
+                    """
+        )
 
 
 def get_coords(point):
-    point = point[point.index('(') + 1:point.index(')')]
-    x = float(point[:point.index(" ")])
-    y = float(point[point.index(" ") + 1:])
+    point = point[point.index("(") + 1 : point.index(")")]
+    x = float(point[: point.index(" ")])
+    y = float(point[point.index(" ") + 1 :])
     return x, y
+
 
 def classify_lights_table(con):
     """
     Goes through each row and creates 2 lists (a and b)
     """
-    con.execute("""
+    con.execute(
+        """
                 CREATE TABLE IF NOT EXISTS crosswalk_centers_classified_lights AS
                 SELECT crosswalk_id, geometry FROM crosswalk_centers_lights
-                """)
-    
-    con.execute("""
+                """
+    )
+
+    con.execute(
+        """
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_id INTEGER[];
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_dist FLOAT[];
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS a_streetlight_geom VARCHAR(1000);
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_id INTEGER[];
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_dist FLOAT[];
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS b_streetlight_geom VARCHAR(1000);
-                """)
-    
-    crosswalks = con.execute("""SELECT crosswalk_id, geometry, streetlight_id, streetlight_dist, streetlight_geom FROM crosswalk_centers_lights""").fetchall()
+                """
+    )
+
+    crosswalks = con.execute(
+        """SELECT crosswalk_id, geometry, streetlight_id, streetlight_dist, streetlight_geom FROM crosswalk_centers_lights"""
+    ).fetchall()
 
     for crosswalk in crosswalks:
         crosswalk_id = crosswalk[0]
@@ -92,16 +98,19 @@ def classify_lights_table(con):
         light_dists = crosswalk[3]
         light_geoms = crosswalk[4]
 
-        matching_crosswalks = con.execute("""
+        matching_crosswalks = con.execute(
+            """
                                           SELECT geometry 
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
-                                          """, (crosswalk_id,)).fetchall()
-        
+                                          """,
+            (crosswalk_id,),
+        ).fetchall()
+
         if light_geoms is None:
             continue
-            
-        light_geoms = light_geoms.split(',')
+
+        light_geoms = light_geoms.split(",")
         light_coords = [get_coords(coord) for coord in light_geoms]
 
         if len(matching_crosswalks) > 1:
@@ -110,7 +119,7 @@ def classify_lights_table(con):
 
             center_x1, center_y1 = get_coords(center1)
             center_x2, center_y2 = get_coords(center2)
-        
+
         a_streetlight_id = []
         a_streetlight_dist = []
         a_streetlight_geom = []
@@ -121,7 +130,9 @@ def classify_lights_table(con):
         for i, _ in enumerate(light_geoms):
             light_x, light_y = light_coords[i]
 
-            direction = ((light_x - center_x1)*(center_y2 - center_y1)) - ((light_y - center_y1)*(center_x2-center_x1))
+            direction = ((light_x - center_x1) * (center_y2 - center_y1)) - (
+                (light_y - center_y1) * (center_x2 - center_x1)
+            )
             if direction < 0:
                 a_streetlight_id.append(light_ids[i])
                 a_streetlight_dist.append(light_dists[i])
@@ -131,7 +142,8 @@ def classify_lights_table(con):
                 b_streetlight_dist.append(light_dists[i])
                 b_streetlight_geom.append(light_geoms[i])
 
-        con.execute("""
+        con.execute(
+            """
                     UPDATE crosswalk_centers_classified_lights
                     SET 
                         a_streetlight_id = ?,
@@ -141,15 +153,27 @@ def classify_lights_table(con):
                         b_streetlight_dist = ?,
                         b_streetlight_geom = ?
                     WHERE geometry = ?
-                    """, (a_streetlight_id, a_streetlight_dist, a_streetlight_geom, b_streetlight_id, b_streetlight_dist, b_streetlight_geom, center))
+                    """,
+            (
+                a_streetlight_id,
+                a_streetlight_dist,
+                a_streetlight_geom,
+                b_streetlight_id,
+                b_streetlight_dist,
+                b_streetlight_geom,
+                center,
+            ),
+        )
 
 
 def lights_geom(con):
-    """
-    """
-    con.execute("ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_geom VARCHAR(1000)")
+    """ """
+    con.execute(
+        "ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_geom VARCHAR(1000)"
+    )
 
-    con.execute("""
+    con.execute(
+        """
                 UPDATE crosswalk_centers_lights as c
                 SET streetlight_geom = (
                     SELECT STRING_AGG(s.geometry, ',') 
@@ -157,23 +181,5 @@ def lights_geom(con):
                     JOIN UNNEST(c.streetlight_id) AS split_ids(id)
                         ON s.OBJECTID = split_ids.id
                     )
-                """)
-
-if __name__ == "__main__":
-    # lights_geom()
-
-
-    # contrast_table()
-    con = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
-    print(classify_lights_table(con))
-
-    # util.save_table_to_geojson(
-    #     con,
-    #     "crosswalk_centers_classified_lights",
-    #     "crosswalk_centers_classified_lights.geojson",
-    # )
-    # con2 = util.connect_to_duckdb("src/night_light/GIS_predictor/edge_classifier/edge_classifier.db")
-    # gdf = util.query_table_to_gdf(con, "crosswalk_centers_classified_lights")
-    # print((gdf.columns))
-
-    
+                """
+    )

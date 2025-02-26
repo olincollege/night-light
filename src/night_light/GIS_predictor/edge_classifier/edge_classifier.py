@@ -2,26 +2,6 @@ import duckdb
 import night_light.bronze_db.util as util
 
 
-def initialize_edge_classifier_db(
-    con: duckdb.DuckDBPyConnection,
-    crosswalks_geojson_path: str,
-    street_segments_geojson_path: str,
-) -> duckdb.DuckDBPyConnection:
-    """
-    Initialize duckdb database tables for edge classifier.
-
-    The db should include Boston crosswalks and street segments tables.
-    """
-    datasets = [
-        (crosswalks_geojson_path, "crosswalks"),
-        (street_segments_geojson_path, "street_segments"),
-    ]
-
-    util.load_multiple_datasets(con, datasets)
-
-    return con
-
-
 def simplify_crosswalk_polygon_to_box(con: duckdb.DuckDBPyConnection):
     gdf = util.query_table_to_gdf(con, "crosswalks", "SELECT * FROM crosswalks")
     # Get oriented bounding rectangles
@@ -112,22 +92,4 @@ def classify_edges_by_intersection(con: duckdb.DuckDBPyConnection):
                 ) t
             );
         """
-    )
-
-
-if __name__ == "__main__":
-    con = util.connect_to_duckdb("edge_classifier.db")
-    initialize_edge_classifier_db(
-        con,
-        street_segments_geojson_path="../../road_characteristics/boston_street_segments.geojson",
-        crosswalks_geojson_path="../../../../tests/test_boston_crosswalk.geojson",
-    )
-    simplify_crosswalk_polygon_to_box(con)
-    decompose_crosswalk_edges(con)
-    classify_edges_by_intersection(con)
-    # save the db table to geojson
-    util.save_table_to_geojson(
-        con,
-        "crosswalk_segments",
-        "crosswalk_segments.geojson",
     )

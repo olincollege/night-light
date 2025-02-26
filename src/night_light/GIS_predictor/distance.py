@@ -1,10 +1,10 @@
-from night_light.bronze_db.util import connect_to_duckdb
+import duckdb
+
 import datetime
 import math
 
 
-
-def find_streetlights_crosswalk_centers(db_path, dist):
+def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
     """
     Find all of the streetlights within a distance from each crosswalk center.
 
@@ -13,15 +13,13 @@ def find_streetlights_crosswalk_centers(db_path, dist):
     - `streetlight_dist`: a list of distances (in meters) from the centerpoint to each nearby streetlight.
 
     Args:
-        db_path: Path to the database containing the tables
+        con: connection to duckdb table
         dist: int of meters to search for streetlights near each crosswalk centerpoint
     """
-    conn = connect_to_duckdb(db_path)
-
     print(datetime.datetime.now())
 
-    long_lat_flipper(conn, "streetlights")
-    long_lat_flipper(conn, "crosswalk_centers_lights")
+    long_lat_flipper(con, "streetlights")
+    long_lat_flipper(con, "crosswalk_centers_lights")
 
     print(datetime.datetime.now())
 
@@ -29,15 +27,15 @@ def find_streetlights_crosswalk_centers(db_path, dist):
     WITH nearby_streetlights AS (
         SELECT
             crosswalk_centers_lights.crosswalk_id,
-            crosswalk_centers_lights.new_geometry AS crosswalk_geometry,
+            crosswalk_centers_lights.geometry_lat_long AS crosswalk_geometry,
             streetlights.OBJECTID AS streetlight_id,
-            streetlights.new_geometry AS streetlight_geometry
+            streetlights.geometry_lat_long AS streetlight_geometry
         FROM
             crosswalk_centers_lights
         JOIN streetlights
             ON ST_DWithin(
-                ST_GeomFromText(streetlights.new_geometry), 
-                ST_GeomFromText(crosswalk_centers_lights.new_geometry),
+                ST_GeomFromText(streetlights.geometry_lat_long), 
+                ST_GeomFromText(crosswalk_centers_lights.geometry_lat_long),
                 ?
             )
     )
@@ -53,7 +51,7 @@ def find_streetlights_crosswalk_centers(db_path, dist):
     dist_degrees = meters_to_degrees(dist)
 
     # Execute the query
-    crosswalks_streetlights = conn.execute(query, (dist_degrees,)).fetchall()
+    crosswalks_streetlights = con.execute(query, (dist_degrees,)).fetchall()
 
     print(datetime.datetime.now(), "adding to db")
 
@@ -63,36 +61,38 @@ def find_streetlights_crosswalk_centers(db_path, dist):
         streetlight_ids = crosswalk[2]
         streetlight_dists = crosswalk[3]
 
-        conn.execute("""
+        con.execute(
+            """
             UPDATE crosswalk_centers_lights
             SET streetlight_id = ?, streetlight_dist = ?
-            WHERE new_geometry = ?
-        """, (streetlight_ids, streetlight_dists, crosswalk_geometry))
-
-    # conn.commit()
+            WHERE geometry_lat_long = ?
+        """,
+            (streetlight_ids, streetlight_dists, crosswalk_geometry),
+        )
 
     print(datetime.datetime.now())
-    print(f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks.")
+    print(
+        f"Updated crosswalk_centers_lights for {len(crosswalks_streetlights)} crosswalks."
+    )
 
 
-def long_lat_flipper(conn, table):
+def long_lat_flipper(con: duckdb.DuckDBPyConnection, table):
     """
     Flips the coordinate so that they are in lat, long order instead of long, lat
     """
     query = f"""
-    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS new_geometry TEXT;
+    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS geometry_lat_long TEXT;
     
     UPDATE {table}
-    SET new_geometry = ST_AsText(
+    SET geometry_lat_long = ST_AsText(
         ST_Point(ST_Y(ST_GeomFromText(geometry)), ST_X(ST_GeomFromText(geometry)))
     );
     """
-    conn.execute(query)
+    con.execute(query)
     print("flipped coords")
 
 
-
-def create_crosswalk_centers_lights(con):
+def create_crosswalk_centers_lights(con: duckdb.DuckDBPyConnection):
     """
     Create a table called crosswalk_centers_lights.
 
@@ -100,31 +100,27 @@ def create_crosswalk_centers_lights(con):
     - `streetlight_id`: a list of ints
     - `streetlight_dist`: a list of floats
     args:
-        conn: connection to duckdb table.
+        con: connection to duckdb table.
     """
     # Copy crosswalk_centers into a new table
-    con.execute("""
+    con.execute(
+        """
         CREATE TABLE IF NOT EXISTS crosswalk_centers_lights AS
         SELECT * FROM crosswalk_centers
-    """)
+    """
+    )
 
     # Add new columns: streetlight_id and streetlight_dist
-    con.execute("""
+    con.execute(
+        """
     ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_id INTEGER[]
-    """)
-    con.execute("""
+    """
+    )
+    con.execute(
+        """
         ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_dist FLOAT[]
-    """)
-
-def add_streetlights_to_edge_classifier(conn):
     """
-    Add the street light table to edge_classifier
-    """
-    conn.execute("ATTACH 'bronze.db' AS bronze;")
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS streetlights AS 
-        SELECT * FROM bronze.streetlights;
-    """)
+    )
 
 
 def meters_to_degrees(meters, latitude=42.3601):
@@ -136,11 +132,11 @@ def meters_to_degrees(meters, latitude=42.3601):
     is bigger between lat and long.
 
     args:
-        meters: int 
-        latitude: int (defaults to boston) 
-    
+        meters: int
+        latitude: int (defaults to boston)
+
     returns:
-        int in degrees 
+        int in degrees
     """
     latitude_change = meters / 111320
     longitude_change = meters / (111320 * math.cos(math.radians(latitude)))
@@ -148,17 +144,3 @@ def meters_to_degrees(meters, latitude=42.3601):
     if longitude_change > latitude_change:
         return longitude_change
     return latitude_change
-
-
-if __name__ == "__main__":
-    db_path = "edge_classifier_lights3.db"
-    conn = connect_to_duckdb(db_path)
-    # # add_streetlights_to_edge_classifier()
-    create_crosswalk_centers_lights(conn)
-    find_streetlights_crosswalk_centers(db_path, 20)
-
-    # util.save_table_to_geojson(
-    #     conn,
-    #     "crosswalk_centers_lights",
-    #     "crosswalk_centers_lights.geojson",
-    # )

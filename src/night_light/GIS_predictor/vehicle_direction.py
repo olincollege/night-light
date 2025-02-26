@@ -1,7 +1,5 @@
 import duckdb
 
-from night_light.bronze_db import util
-
 
 def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
     """
@@ -116,14 +114,4 @@ def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
                 ELSE 'undefined'
             END;
         """
-    )
-
-
-if __name__ == "__main__":
-    con = util.connect_to_duckdb("edge_classifier/edge_classifier.db")
-    identify_vehicle_direction(con)
-    util.save_table_to_geojson(
-        con,
-        "crosswalk_centers",
-        "crosswalk_centers.geojson",
     )
