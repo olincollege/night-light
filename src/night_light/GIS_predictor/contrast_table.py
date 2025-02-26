@@ -23,7 +23,7 @@ def contrast_table(con):
                 )
                 """)
     
-    direction_vectors = con.execute("""SELECT crosswalk_id, geometry, from_coord FROM crosswalk_centers""").fetchall()
+    direction_vectors = con.execute("""SELECT crosswalk_id, geometry, from_coord FROM crosswalk_centers_lights""").fetchall()
 
     for row in direction_vectors:
         crosswalk_id = row[0]
@@ -32,7 +32,7 @@ def contrast_table(con):
         from_x, from_y = get_coords(from_coord)
 
         matching_crosswalks = con.execute("""
-                                          SELECT street_center_point
+                                          SELECT geometry
                                           FROM crosswalk_centers_lights
                                           WHERE crosswalk_id = ?
                                           """, (crosswalk_id,)).fetchall()
