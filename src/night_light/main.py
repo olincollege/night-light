@@ -33,6 +33,8 @@ def initialize_db(
 if __name__ == "__main__":
     con = util.connect_to_duckdb("boston_contrast.db")
     initialize_db(con)
+
+    # Simplify crosswalks and decompose edges
     edge_classifier.simplify_crosswalk_polygon_to_box(con)
     edge_classifier.decompose_crosswalk_edges(con)
 
@@ -44,9 +46,9 @@ if __name__ == "__main__":
     # Get distance between crosswalks and streetlights
     distance.create_crosswalk_centers_lights(con)
     distance.find_streetlights_crosswalk_centers(con, 20)
-    contrast_table.lights_geom(con)
 
     # Get contrast per crosswalk
+    contrast_table.lights_geom(con)
     contrast_table.classify_lights_table(con)
     contrast_table.contrast_table(con)
 
