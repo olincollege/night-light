@@ -1,32 +1,38 @@
 def contrast_table(con):
-    con.execute("""
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_heuristic FLOAT;
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_heuristic FLOAT;
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS contrast_heuristic VARCHAR(500);
-                """)
-    
-    con.execute("""
-                UPDATE crosswalk_centers_classified_lights as c
-                SET from_side_heuristic = (
-                    SELECT SUM(1.0 / (d.value * d.value))
-                    FROM UNNEST(c.from_side_streetlight_dist) AS d(value)
-                ),
-                to_side_heuristic = (
-                    SELECT SUM(1.0 / (d.value * d.value))
-                    FROM UNNEST(c.to_side_streetlight_dist) AS d(value)
-                )
-                """)
-    
-    con.execute("""
-                UPDATE crosswalk_centers_classified_lights as c
-                SET contrast_heuristic = (
-                    CASE
-                        WHEN c.from_side_heuristic > c.to_side_heuristic THEN 'positive contrast'
-                        WHEN c.from_side_heuristic < c.to_side_heuristic THEN 'negative contrast'
-                    END
-                )
-                """)
-    
+    con.execute(
+        """
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_heuristic FLOAT;
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_heuristic FLOAT;
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS contrast_heuristic VARCHAR(500);
+        """
+    )
+
+    con.execute(
+        """
+        UPDATE crosswalk_centers_classified_lights as c
+        SET from_side_heuristic = (
+            SELECT SUM(1.0 / (d.value * d.value))
+            FROM UNNEST(c.from_side_streetlight_dist) AS d(value)
+        ),
+        to_side_heuristic = (
+            SELECT SUM(1.0 / (d.value * d.value))
+            FROM UNNEST(c.to_side_streetlight_dist) AS d(value)
+        )
+        """
+    )
+
+    con.execute(
+        """
+        UPDATE crosswalk_centers_classified_lights as c
+        SET contrast_heuristic = (
+            CASE
+                WHEN c.from_side_heuristic > c.to_side_heuristic THEN 'positive contrast'
+                WHEN c.from_side_heuristic < c.to_side_heuristic THEN 'negative contrast'
+            END
+        )
+        """
+    )
+
 
 def get_coords(point):
     point = point[point.index("(") + 1 : point.index(")")]
@@ -41,20 +47,21 @@ def classify_lights_table(con):
     """
     con.execute(
         """
-                CREATE TABLE IF NOT EXISTS crosswalk_centers_classified_lights AS
-                SELECT crosswalk_id, geometry FROM crosswalk_centers_lights
-                """
+        CREATE TABLE IF NOT EXISTS crosswalk_centers_classified_lights AS
+        SELECT crosswalk_id, geometry FROM crosswalk_centers_lights
+        """
     )
 
+    # Create the columns as arrays from the beginning
     con.execute(
         """
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_id INTEGER[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_dist FLOAT[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_geom VARCHAR(1000);
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_id INTEGER[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_dist FLOAT[];
-                ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_geom VARCHAR(1000);
-                """
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_id INTEGER[];
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_dist FLOAT[];
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_streetlight_geom VARCHAR(1000)[];
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_id INTEGER[];
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_dist FLOAT[];
+        ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS to_side_streetlight_geom VARCHAR(1000)[];
+        """
     )
 
     crosswalks = con.execute(
@@ -68,20 +75,24 @@ def classify_lights_table(con):
         light_dists = crosswalk[3]
         light_geoms = crosswalk[4]
 
-        crosswalk_A = con.execute("""
+        crosswalk_A = con.execute(
+            """
                                   SELECT geometry, from_coord 
                                   FROM crosswalk_centers_lights
                                   WHERE crosswalk_id = ? AND center_id = ?
-                                  """, (crosswalk_id, 'A')
+                                  """,
+            (crosswalk_id, "A"),
         ).fetchall()
 
-        crosswalk_B = con.execute("""
+        crosswalk_B = con.execute(
+            """
                                   SELECT geometry, from_coord
                                   FROM crosswalk_centers_lights
                                   WHERE crosswalk_id = ? AND center_id = ?
-                                  """, (crosswalk_id, 'B')
+                                  """,
+            (crosswalk_id, "B"),
         ).fetchall()
-        
+
         if light_geoms is None:
             continue
 
@@ -100,7 +111,7 @@ def classify_lights_table(con):
 
             from_xA, from_yA = get_coords(fromA)
             from_xB, from_yB = get_coords(fromB)
-    
+
         from_side_streetlight_id = []
         from_side_streetlight_dist = []
         from_side_streetlight_geom = []
