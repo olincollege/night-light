@@ -9,6 +9,7 @@ import night_light.GIS_predictor.crosswalk_center as crosswalk_center
 import night_light.GIS_predictor.edge_classifier.edge_classifier as edge_classifier
 import night_light.GIS_predictor.distance as distance
 import night_light.GIS_predictor.contrast_table as contrast_table
+import night_light.GIS_predictor.percieved_brightness as brightness
 
 
 def abs_path(relative_path):
@@ -51,6 +52,9 @@ if __name__ == "__main__":
     contrast_table.lights_geom(con)
     contrast_table.classify_lights_table(con)
     contrast_table.contrast_table(con)
+
+    # Get brightness per crosswalk
+    brightness.calculate_percieved_brightness(con)
 
     # Save the results to parquet
     output_dir = abs_path("output")
