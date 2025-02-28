@@ -9,6 +9,10 @@ import night_light.GIS_predictor.crosswalk_center as crosswalk_center
 import night_light.GIS_predictor.edge_classifier.edge_classifier as edge_classifier
 import night_light.GIS_predictor.distance as distance
 import night_light.GIS_predictor.contrast_table as contrast_table
+import night_light.GIS_predictor.percieved_brightness as brightness
+from night_light.GIS_predictor.visualization_utils import (
+    make_lines_from_crosswalk_to_streetlights,
+)
 
 
 def abs_path(relative_path):
@@ -31,7 +35,7 @@ def initialize_db(
 
 
 if __name__ == "__main__":
-    con = util.connect_to_duckdb("boston_contrast.db")
+    con = util.connect_to_duckdb(abs_path("boston_contrast.db"))
     initialize_db(con)
 
     # Simplify crosswalks and decompose edges
@@ -52,6 +56,12 @@ if __name__ == "__main__":
     contrast_table.classify_lights_table(con)
     contrast_table.contrast_table(con)
 
+    # Create lines from crosswalk centers to streetlights
+    make_lines_from_crosswalk_to_streetlights(con)
+
+    # Get brightness per crosswalk
+    brightness.calculate_percieved_brightness(con)
+
     # Save the results to parquet
     output_dir = abs_path("output")
     os.makedirs(output_dir, exist_ok=True)
@@ -65,4 +75,14 @@ if __name__ == "__main__":
         con,
         "crosswalk_centers_lights",
         os.path.join(output_dir, "crosswalk_centers_lights.parquet"),
+    )
+    util.save_table_to_parquet(
+        con,
+        "streetlights",
+        os.path.join(output_dir, "streetlights.parquet"),
+    )
+    util.save_table_to_csv(
+        con,
+        "crosswalk_centers_to_lights",
+        os.path.join(output_dir, "crosswalk_centers_to_lights.parquet"),
     )
