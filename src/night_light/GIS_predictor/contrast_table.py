@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 def contrast_table(con):
     con.execute("""
                 ALTER TABLE crosswalk_centers_classified_lights ADD COLUMN IF NOT EXISTS from_side_heuristic FLOAT;
@@ -30,8 +32,8 @@ def contrast_table(con):
 
 def get_coords(point):
     point = point[point.index("(") + 1 : point.index(")")]
-    x = float(point[: point.index(" ")])
-    y = float(point[point.index(" ") + 1 :])
+    x = Decimal(point[: point.index(" ")])
+    y = Decimal(point[point.index(" ") + 1 :])
     return x, y
 
 
@@ -42,7 +44,7 @@ def classify_lights_table(con):
     con.execute(
         """
                 CREATE TABLE IF NOT EXISTS crosswalk_centers_classified_lights AS
-                SELECT crosswalk_id, geometry FROM crosswalk_centers_lights
+                SELECT crosswalk_id, geometry, center_id FROM crosswalk_centers_lights
                 """
     )
 
@@ -58,25 +60,27 @@ def classify_lights_table(con):
     )
 
     crosswalks = con.execute(
-        """SELECT crosswalk_id, geometry, streetlight_id, streetlight_dist, streetlight_geom FROM crosswalk_centers_lights"""
+        """SELECT crosswalk_id, center_id, from_coord, geometry, streetlight_id, streetlight_dist, streetlight_geom FROM crosswalk_centers_lights"""
     ).fetchall()
 
     for crosswalk in crosswalks:
         crosswalk_id = crosswalk[0]
-        center = crosswalk[1]
-        light_ids = crosswalk[2]
-        light_dists = crosswalk[3]
-        light_geoms = crosswalk[4]
+        center_id = crosswalk[1]
+        from_coord = crosswalk[2]
+        center = crosswalk[3]
+        light_ids = crosswalk[4]
+        light_dists = crosswalk[5]
+        light_geoms = crosswalk[6]
 
         crosswalk_A = con.execute("""
-                                  SELECT geometry, from_coord 
+                                  SELECT geometry 
                                   FROM crosswalk_centers_lights
                                   WHERE crosswalk_id = ? AND center_id = ?
                                   """, (crosswalk_id, 'A')
         ).fetchall()
 
         crosswalk_B = con.execute("""
-                                  SELECT geometry, from_coord
+                                  SELECT geometry
                                   FROM crosswalk_centers_lights
                                   WHERE crosswalk_id = ? AND center_id = ?
                                   """, (crosswalk_id, 'B')
@@ -87,19 +91,14 @@ def classify_lights_table(con):
 
         light_geoms = light_geoms.split(",")
         light_coords = [get_coords(coord) for coord in light_geoms]
+        from_x, from_y = get_coords(from_coord)
 
         if crosswalk_A != [] and crosswalk_B != []:
             centerA = crosswalk_A[0][0]
             centerB = crosswalk_B[0][0]
 
-            fromA = crosswalk_A[0][1]
-            fromB = crosswalk_B[0][1]
-
             center_xA, center_yA = get_coords(centerA)
             center_xB, center_yB = get_coords(centerB)
-
-            from_xA, from_yA = get_coords(fromA)
-            from_xB, from_yB = get_coords(fromB)
     
         from_side_streetlight_id = []
         from_side_streetlight_dist = []
@@ -115,8 +114,8 @@ def classify_lights_table(con):
                 (light_y - center_yA) * (center_xB - center_xA)
             )
 
-            direction_from = ((light_x - from_xA) * (from_yB - from_yA)) - (
-                (light_y - from_yA) * (from_xB - from_xA)
+            direction_from = ((from_x - center_xA) * (center_yB - center_yA)) - (
+                (from_y - center_yA) * (center_xB - center_xA)
             )
 
             if (direction_light > 0) == (direction_from > 0):
