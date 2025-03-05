@@ -11,9 +11,7 @@ import night_light.GIS_predictor.distance as distance
 import night_light.GIS_predictor.contrast_table as contrast_table
 import night_light.GIS_predictor.percieved_brightness as brightness
 import night_light.GIS_predictor.compare as compare
-from night_light.GIS_predictor.visualization_utils import (
-    make_lines_from_crosswalk_to_streetlights,
-)
+import night_light.GIS_predictor.contrast as contrast
 
 
 def abs_path(relative_path):
@@ -52,22 +50,16 @@ if __name__ == "__main__":
     distance.create_crosswalk_centers_lights(con)
     distance.find_streetlights_crosswalk_centers(con, 20)
 
-    # Get contrast per crosswalk
-    contrast_table.lights_geom(con)
-    contrast_table.classify_lights_table(con)
-    contrast_table.contrast_table(con)
-
-    # Create lines from crosswalk centers to streetlights
-    make_lines_from_crosswalk_to_streetlights(con)
+    contrast.classify_lights_by_side(con)
+    contrast.add_distances(con)
+    contrast.calculate_contrast_heuristics(con, 0.02)
 
     # Get brightness per crosswalk
     brightness.calculate_percieved_brightness(con)
 
     # Make comparison table
-    file_path = 'SVData2-11.csv'
+    file_path = abs_path("../../SVData2-11.csv")
     compare.create_compare_table(con, file_path)
-
-
 
     # Save the results to parquet
     output_dir = abs_path("output")
@@ -75,8 +67,12 @@ if __name__ == "__main__":
 
     util.save_table_to_parquet(
         con,
-        "crosswalk_centers_classified_lights",
-        os.path.join(output_dir, "crosswalk_centers_classified_lights.parquet"),
+        "crosswalk_centers_contrast",
+        os.path.join(output_dir, "crosswalk_centers_contrast.parquet"),
+    )
+    utils.save_table_to_csv(
+        "classified_streetlights",
+        os.path.join(output_dir, "classified_streetlights.csv"),
     )
     util.save_table_to_parquet(
         con,
@@ -87,9 +83,4 @@ if __name__ == "__main__":
         con,
         "streetlights",
         os.path.join(output_dir, "streetlights.parquet"),
-    )
-    util.save_table_to_csv(
-        con,
-        "crosswalk_centers_to_lights",
-        os.path.join(output_dir, "crosswalk_centers_to_lights.parquet"),
     )
