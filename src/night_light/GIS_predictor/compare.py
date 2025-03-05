@@ -1,6 +1,7 @@
 import pandas as pd
 import duckdb
 
+
 def create_compare_table(con, file_path):
     df = pd.read_csv(file_path)
 
@@ -10,12 +11,12 @@ def create_compare_table(con, file_path):
         crosswalk_id = crosswalk_id[:-1]
         condition = f"crosswalk_id = {crosswalk_id} AND center_id = '{center_id}'"
         conditions.append(condition)
-    
+
     query_conditions = " OR ".join(conditions)
 
     query = f"""
     CREATE TABLE IF NOT EXISTS crosswalk_compare AS
-    SELECT crosswalk_id, center_id, light_heuristic, contrast_heuristic, to_side_heuristic, from_side_heuristic FROM crosswalk_centers_classified_lights
+    SELECT crosswalk_id, center_id, light_heuristic, contrast_heuristic, to_heuristic, from_heuristic FROM crosswalk_centers_contrast
     WHERE {query_conditions};
     """
 
@@ -23,13 +24,12 @@ def create_compare_table(con, file_path):
     print("Table 'crosswalk_compare' created successfully.")
 
 
-
 if __name__ == "__main__":
     # Establish a connection to your DuckDB database
-    con = duckdb.connect('src/night_light/boston_contrast.db') 
+    con = duckdb.connect("src/night_light/boston_contrast.db")
 
     # Specify the path to your CSV file
-    file_path = 'SVData2-11.csv'
+    file_path = "SVData2-11.csv"
     df = pd.read_csv(file_path)
 
     # Call the function to filter the data and create the new table
