@@ -10,6 +10,7 @@ import night_light.GIS_predictor.edge_classifier.edge_classifier as edge_classif
 import night_light.GIS_predictor.distance as distance
 import night_light.GIS_predictor.contrast_table as contrast_table
 import night_light.GIS_predictor.percieved_brightness as brightness
+import night_light.GIS_predictor.compare as compare
 from night_light.GIS_predictor.visualization_utils import (
     make_lines_from_crosswalk_to_streetlights,
 )
@@ -61,6 +62,12 @@ if __name__ == "__main__":
 
     # Get brightness per crosswalk
     brightness.calculate_percieved_brightness(con)
+
+    # Make comparison table
+    file_path = 'SVData2-11.csv'
+    compare.create_compare_table(con, file_path)
+
+
 
     # Save the results to parquet
     output_dir = abs_path("output")
