@@ -20,6 +20,7 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
 
     long_lat_flipper(con, "streetlights")
     long_lat_flipper(con, "crosswalk_centers_lights")
+    lat_long_to_meters(con, "streetlights")
 
     print(datetime.datetime.now())
 
@@ -30,7 +31,8 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
             crosswalk_centers_lights.geometry_lat_long AS crosswalk_geometry,
             streetlights.OBJECTID AS streetlight_id,
             streetlights.geometry_lat_long AS streetlight_geometry_lat_long,
-            streetlights.geometry as streetlight_geometry
+            streetlights.geometry as streetlight_geometry,
+            streetlights.geometry_xy as streetlight_geometry_xy
         FROM
             crosswalk_centers_lights
         JOIN streetlights
@@ -46,7 +48,9 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
         array_agg(streetlight_id) AS streetlight_ids,
         array_agg(ST_Distance_Sphere(streetlight_geometry_lat_long::GEOMETRY, crosswalk_geometry::GEOMETRY)) AS streetlight_dists,
         array_agg(streetlight_geometry_lat_long) AS streetlight_geometries_lat_long,
-        array_agg(streetlight_geometry) AS streetlight_geometries
+        array_agg(streetlight_geometry) AS streetlight_geometries,
+        array_agg(streetlight_geometry_xy) as streetlight_geometries_xy
+
     FROM nearby_streetlights
     GROUP BY crosswalk_id, crosswalk_geometry
     """
@@ -65,14 +69,15 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
         streetlight_dists = crosswalk[3]
         streetlight_geom_lat_long = crosswalk[4]
         streetlight_geom = crosswalk[5]
+        streetlight_geom_xy = crosswalk[6]
 
         con.execute(
             """
             UPDATE crosswalk_centers_lights
-            SET streetlight_id = ?, streetlight_dist = ?, streetlight_geometries_lat_long = ?, streetlight_geometries = ?
+            SET streetlight_id = ?, streetlight_dist = ?, streetlight_geometries_lat_long = ?, streetlight_geometries = ?, streetlight_geometries_xy = ?
             WHERE geometry_lat_long = ?
         """,
-            (streetlight_ids, streetlight_dists, streetlight_geom_lat_long, streetlight_geom, crosswalk_geometry,),
+            (streetlight_ids, streetlight_dists, streetlight_geom_lat_long, streetlight_geom, streetlight_geom_xy, crosswalk_geometry,),
         )
 
     print(datetime.datetime.now())
@@ -91,10 +96,30 @@ def long_lat_flipper(con: duckdb.DuckDBPyConnection, table):
     UPDATE {table}
     SET geometry_lat_long = ST_AsText(
         ST_Point(ST_Y(ST_GeomFromText(geometry)), ST_X(ST_GeomFromText(geometry)))
-    );
+    )
     """
     con.execute(query)
     print("flipped coords")
+
+
+def lat_long_to_meters(con: duckdb.DuckDBPyConnection, table):
+    """
+    make to meters
+    """
+    query = f"""
+    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS geometry_xy TEXT;
+    
+    UPDATE {table}
+    SET geometry_xy = ST_AsText(
+                            ST_Transform(
+                                ST_GeomFromText({table}.geometry_lat_long), 
+                                CAST('EPSG:4326' AS VARCHAR),
+                                CAST('EPSG:3857' AS VARCHAR)
+                            )
+                        )
+    """
+    con.execute(query)
+    print("changed to meters")
 
 
 def create_crosswalk_centers_lights(con: duckdb.DuckDBPyConnection):
@@ -133,6 +158,11 @@ def create_crosswalk_centers_lights(con: duckdb.DuckDBPyConnection):
     con.execute(
         """
         ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_geometries_lat_long TEXT[]
+    """
+    )
+    con.execute(
+        """
+        ALTER TABLE crosswalk_centers_lights ADD COLUMN IF NOT EXISTS streetlight_geometries_xy TEXT[]
     """
     )
 
