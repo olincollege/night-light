@@ -12,13 +12,13 @@ Process Flow
 
 - The entry script `main.py` starts by generating a mini version of a bronze-level database which will be used later for manipulation.
 - Following GeoJSON datasets are loaded into the database:
-    - Crosswalks (`tests/test_boston_crosswalk.geojson`)
-    - Streetlights (`tests/test_boston_streetlights.geojson`)
-    - Traffic lights (`tests/test_boston_traffic_lights.geojson`)
+    - Crosswalks (`datasets/boston_crosswalks.geojson`)
+    - Streetlights (`datasets/boston_streetlights.geojson`)
+    - Street segments (`datasets/boston_street_segments.geojson`)
 
 2. **Classify Crosswalk Edges**:
 
-- Initialize `edge_classifier.db` with Boston's street segments and crosswalk datasets to process the edges of crosswalks.
+- Initialize `boston_constrast.db` with Boston's street segments and crosswalk datasets to process the edges of crosswalks.
 - Convert crosswalk polygons into simplified minimum rotated rectangle. This ensures that there are always exactly 4 edges to a crosswalk.
 - Break down crosswalk rectangles into individual edges. Each edge is represented by a unique ID and its start and end points.
 - Classify crosswalk edges based on intersections with street segments. If the edge intersects with a street segment, classify as `is_vehicle_edge = TRUE` and otherwise `FALSE`. Alongside, store the intersecting street segment ID.
@@ -54,20 +54,50 @@ Process Flow
 
 5. **Compute Distances from Crosswalk to Streetlights**:
 
-TODO
+- Adds the `streetlights` table to the `boston_constrast.db` to prepare for distance calculations.
+- Creates the `crosswalk_centers_lights` table by copying `crosswalk_centers` and adding two empty columns: `streetlight_id` and `streetlight_dist`.
+    – `streetlight_id` will contain an array of streetlight IDs for each cell.
+    – `streetlight_dist` will contain an array of distances (in meters) between each streetlight and the crosswalk centerpoint for each cell. Note that the index of the distance will correlate with the index of the ID.
+- Flips the (longitude, latitude) so that it becomes (latitude, longitude) for both the streetlight and crosswalk center geometries. The flipped geometry will be stored in a column called `geometry_lat_long`.
+    – GeoJSON stores coordinates as (longitude, latitude) in WKT format. DuckDB's distance functions expect the coordinates to be in (latitude, longitude), so they need to be flipped.
+- For each crosswalk centerpoint, finds all streetlights that are roughly within 20 meters (this number can be adjusted).
+    – Uses `ST_DWithin`,  which calculates the Cartesian distance between the two points. Therefore, the value used to find the distances must be in degrees. `meters_to_degrees` provides a rough conversion using a default Boston latitude value, which tends to give an overestimate.
+    – After identifying the streetlights, a more precise distance calculation is performed using ST_Distance_Sphere, which uses the Haversine formula to calculate the distance in meters.
+    – This information is used to populate the `streetlight_id` and `streetlight_dist` columns.
+    – Note that calculating the distances per centerpoint is the most time-intensive step of this process. The function `find_streetlights_crosswalk_centers` takes about 10 minutes for the Boston dataset.
 
-6. **Compute Contrast Heuristics**:
+6. **Identify streetlight groups**:
 
-- Given a crosswalk ID with the two center IDs associated with it, find the equation of the line that that connects the two center points called the centerline.
-- For each center ID, get the list of lamppost coordinates and determine which side of the centerline each lamppost falls on using z = (x-x\ :sub:`1`)(y\ :sub:`2`-y\ :sub:`1`) - (y-y\ :sub:`1`)(x\ :sub:`2`-x\ :sub:`1`), where (x,y) are the lamppost coordinates and (x\ :sub:`1`,y\ :sub:`1`) and (x\ :sub:`2`,y\ :sub:`2`) are the coordinates of the two center points.
-    - If the lamppost falls on the left side of the centerline (z < 0), then it's assigned to Group A.
-    - If the lamppost falls on the right side of the centerline (z > 0), then it's assigned to Group B.
-- Calculate the brightness heuristic B for each lamppost group using the lamppost's distances from the center point and the equation B = 1/d\ :sub:`1`\ :sup:`2` + 1/d\ :sub:`2`\ :sup:`2` + ... 1/d\ :sub:`x`\ :sup:`2`
-- Determine contrast using the brightness heuristic B and the direction of the car. 
-    - If the car is going from left to right, and it's brighter on the left side of the centerline (Group A is brighter than Group B), then the contrast is positive.
-    - If the car is going from right to left, and it's brighter on the right side of the centerline (Group B is brighter than Group A), then the contrast is positive.
-    - If the car is going from left to right, and it's brighter on the right side of the centerline (Group B is brighter than Group A), then the contrast is negative.
-    - If the car is going from right to left, and it's brighter on the left side of the centerline (Group A is brighter than Group B). then the contrast is negative.
+- Prior to computing the contrast heuristics, we need to determine the effects of each streetlight on the contrast. Thus, we categorize streetlights based on their spatial relationship to the crosswalk and the vehicle's direction (i.e., the driver's perspective) as either `to_side` or `from_side`.
+- Define the Crosswalk Center Line:
+    - Identify two center points (`A` and `B`) of the crosswalk.
+    - Draw a straight line (`a_to_b`) connecting them.
+- Compute Reference Direction:
+    - Create a directional vector from the start (`from_coord`) to the end (`to_coord`) of the crosswalk.
+- Associate Streetlights with Crosswalk Centers:
+    - Identify all streetlights near the crosswalk within the masking radius from the previous step (e.g. 20 meters).
+    - Draw a line from the crosswalk center to each streetlight (`center_to_light`).
+- Classify Streetlights:
+    - Compare the directional relationships between the reference vector and streetlight vectors by comparing the sign of cross product with the crosswalk center line.
+    - If the streetlight has a similar direction to the reference direction, it belongs to the **to-side**; otherwise, it belongs to the **from-side**.
+- Associate Distance Values
+    - Retrieve the distance between each classified streetlight and the crosswalk center.
+    - Store this information for later contrast calculation.
+
+7. **Compute Contrast Heuristics**:
+
+- The contrast heuristic measures the difference in lighting between the two sides of a crosswalk (side of the approaching driver, and the opposite side).
+- Calculate Light Influence for Each Side:
+    - Compute heuristic values separately for **to-side** and **from-side** based on the sum of inverse squared distances: :math:`\sum \left( \frac{1}{{\text{distance}^2}} \right)`
+- Compare Lighting Balance:
+    - If the difference between the two sides is small, classify the crosswalk as having **no contrast**.
+    - If the from-side has more light influence, label it **positive contrast**.
+    - If the to-side has more light influence, label it **negative contrast**.
+
+- Store Results for Each Crosswalk Center:
+    - `to_heuristic`: Light intensity sum for the to-side.
+    - `from_heuristic`: Light intensity sum for the from-side.
+    - `contrast_heuristic`: The final contrast classification.
     
 .. image:: ../_static/images/crosswalk_diagram.png
   :width: 600
