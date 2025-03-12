@@ -24,8 +24,10 @@ def create_compare_table(con, file_path):
     print("Table 'crosswalk_compare' created successfully.")
 
 
-def add_perceived_contrast_column(con, df):
-    # Add the 'perceived_contrast' column if it doesn't exist
+def add_collected_data_columns(con, df):
+    """
+    Create coloumns to put the csv data
+    """
     con.execute("""                
     ALTER TABLE crosswalk_compare
     ADD COLUMN IF NOT EXISTS perceived_contrast string;
@@ -43,7 +45,7 @@ def add_perceived_contrast_column(con, df):
     ADD COLUMN IF NOT EXISTS net_lux float;
     """)
 
-    # Update the 'perceived_contrast' column with values from the DataFrame
+    # Update the table with data from csv
     for _, row in df.iterrows():
         center_id = row["Center ID"]
         crosswalk_id = row["Crosswalk ID"]
@@ -67,17 +69,36 @@ def add_perceived_contrast_column(con, df):
         """
         con.execute(update_query)
 
+def ordered_compare_table(con):
+    """
+    Make the order easier to read
+    """
+    query = f"""
+    CREATE TABLE IF NOT EXISTS crosswalk_compared AS
+    SELECT crosswalk_id,
+        center_id,
+        light_heuristic,
+        perceived_visibility,
+        lux_toward_car,
+        to_side_heuristic,
+        lux_away_car,
+        from_side_heuristic,
+        contrast_heuristic,
+        perceived_contrast,
+        net_lux FROM crosswalk_compare
+    """
+
+    con.execute(query)
+    print("Table 'crosswalk_compare' created successfully.")
 
 
 if __name__ == "__main__":
-    # Establish a connection to your DuckDB database
     con = duckdb.connect('src/night_light/boston_contrast.db') 
-
-    # Specify the path to your CSV file
     file_path = 'SVDataCollection2-11.csv'
     df = pd.read_csv(file_path)
 
     # Call the function to filter the data and create the new table
     create_compare_table(con, file_path)
-    add_perceived_contrast_column(con, df)
+    add_collected_data_columns(con, df)
+    ordered_compare_table(con)
 
