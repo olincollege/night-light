@@ -1,5 +1,16 @@
+import inspect
+import os
+
 import pandas as pd
 import duckdb
+
+
+def abs_path(relative_path):
+    caller_file = inspect.stack()[1].filename  # Get the caller's frame
+    caller_dir = os.path.dirname(
+        os.path.abspath(caller_file)
+    )  # Get the directory of the caller's script
+    return os.path.join(caller_dir, relative_path)
 
 
 def create_compare_table(con, file_path):
@@ -28,10 +39,11 @@ def add_collected_data_columns(con, df):
     """
     Create coloumns to put the csv data
     """
-    con.execute("""                
+    con.execute(
+        """                
     ALTER TABLE crosswalk_compare
     ADD COLUMN IF NOT EXISTS perceived_contrast string;
-                
+
     ALTER TABLE crosswalk_compare
     ADD COLUMN IF NOT EXISTS perceived_visibility float;
     
@@ -43,7 +55,8 @@ def add_collected_data_columns(con, df):
                 
     ALTER TABLE crosswalk_compare
     ADD COLUMN IF NOT EXISTS net_lux float;
-    """)
+    """
+    )
 
     # Update the table with data from csv
     for _, row in df.iterrows():
@@ -69,6 +82,7 @@ def add_collected_data_columns(con, df):
         """
         con.execute(update_query)
 
+
 def ordered_compare_table(con):
     """
     Make the order easier to read
@@ -80,9 +94,9 @@ def ordered_compare_table(con):
         light_heuristic,
         perceived_visibility,
         lux_toward_car,
-        to_side_heuristic,
+        to_heuristic,
         lux_away_car,
-        from_side_heuristic,
+        from_heuristic,
         contrast_heuristic,
         perceived_contrast,
         net_lux FROM crosswalk_compare
@@ -92,13 +106,30 @@ def ordered_compare_table(con):
     print("Table 'crosswalk_compare' created successfully.")
 
 
+def evaluate_contrast_results(con):
+    query = """
+        ALTER TABLE crosswalk_compare 
+        ADD COLUMN IF NOT EXISTS contrast_alignment BOOLEAN;
+        
+        UPDATE crosswalk_compare
+        SET contrast_alignment = 
+            CASE 
+                WHEN contrast_heuristic = 'positive contrast' AND perceived_contrast > 0 THEN TRUE
+                WHEN contrast_heuristic = 'negative contrast' AND perceived_contrast < 0 THEN TRUE
+                WHEN contrast_heuristic = 'no contrast' AND perceived_contrast = 0 THEN TRUE
+                ELSE FALSE
+            END;
+    """
+    con.execute(query)
+
+
 if __name__ == "__main__":
-    con = duckdb.connect('src/night_light/boston_contrast.db') 
-    file_path = 'SVDataCollection2-11.csv'
+    con = duckdb.connect(abs_path("../boston_contrast.db"))
+    file_path = abs_path("../SVDataCollection2-11.csv")
     df = pd.read_csv(file_path)
 
     # Call the function to filter the data and create the new table
     create_compare_table(con, file_path)
     add_collected_data_columns(con, df)
     ordered_compare_table(con)
-
+    evaluate_contrast_results(con)
