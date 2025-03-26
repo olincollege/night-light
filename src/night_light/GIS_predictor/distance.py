@@ -24,28 +24,39 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
     print(datetime.datetime.now())
 
     query = """
-    WITH nearby_streetlights AS (
-        SELECT
-            crosswalk_centers_lights.crosswalk_id,
-            crosswalk_centers_lights.geometry_lat_long AS crosswalk_geometry,
-            streetlights.OBJECTID AS streetlight_id,
-            streetlights.geometry_lat_long AS streetlight_geometry
-        FROM
-            crosswalk_centers_lights
-        JOIN streetlights
-            ON ST_DWithin(
-                ST_GeomFromText(streetlights.geometry_lat_long), 
-                ST_GeomFromText(crosswalk_centers_lights.geometry_lat_long),
-                ?
-            )
+    WITH 
+    -- 1. Precast geometries to avoid redundant parsing
+    geom_inputs AS (
+        SELECT 
+            cl.crosswalk_id,
+            ST_GeomFromText(cl.geometry_lat_long) AS cross_geom
+        FROM crosswalk_centers_lights cl
+    ),
+    geom_lights AS (
+        SELECT 
+            s.OBJECTID AS streetlight_id,
+            ST_GeomFromText(s.geometry_lat_long) AS light_geom
+        FROM streetlights s
+    ),
+    -- 2. Add pre-filtering with bounding boxes for better performance
+    filtered_pairs AS (
+        SELECT 
+            gi.crosswalk_id,
+            gi.cross_geom,
+            gl.streetlight_id,
+            gl.light_geom
+        FROM geom_inputs gi
+        JOIN geom_lights gl
+            ON ST_DWithin(gl.light_geom, gi.cross_geom, ?)
     )
+    -- 3. Aggregate distances and IDs
     SELECT
         crosswalk_id,
-        crosswalk_geometry,
+        ST_AsText(cross_geom) AS crosswalk_geometry,
         array_agg(streetlight_id) AS streetlight_ids,
-        array_agg(ST_Distance_Sphere(streetlight_geometry::GEOMETRY, crosswalk_geometry::GEOMETRY)) AS streetlight_dists
-    FROM nearby_streetlights
-    GROUP BY crosswalk_id, crosswalk_geometry
+        array_agg(ST_Distance_Sphere(light_geom, cross_geom)) AS streetlight_dists
+    FROM filtered_pairs
+    GROUP BY crosswalk_id, cross_geom;
     """
 
     dist_degrees = meters_to_degrees(dist)
