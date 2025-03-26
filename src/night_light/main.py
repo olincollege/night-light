@@ -70,7 +70,8 @@ if __name__ == "__main__":
         "crosswalk_centers_contrast",
         os.path.join(output_dir, "crosswalk_centers_contrast.parquet"),
     )
-    utils.save_table_to_csv(
+    util.save_table_to_csv(
+        con,
         "classified_streetlights",
         os.path.join(output_dir, "classified_streetlights.csv"),
     )
