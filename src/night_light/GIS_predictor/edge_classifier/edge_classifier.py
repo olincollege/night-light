@@ -97,14 +97,19 @@ def classify_edges_by_intersection(con: duckdb.DuckDBPyConnection):
         
         -- 3. Determine if the intersecting street segment is one-way
         UPDATE crosswalk_segments
-        SET is_oneway = COALESCE((
-        SELECT CASE 
-            WHEN s.ONEWAY = 'FT' THEN TRUE
-            ELSE FALSE
-        END
-        FROM street_segments s
-        WHERE s.OBJECTID = crosswalk_segments.street_segment_id
-        ), FALSE) -- Default to FALSE if no street segment is found
-        WHERE is_vehicle_edge = TRUE;
+        SET is_oneway = x.oneway
+        FROM (
+            SELECT
+                crosswalk_id,
+                MAX(CASE 
+                    WHEN s.ONEWAY = 'FT' THEN TRUE
+                    ELSE FALSE
+                END) AS oneway
+            FROM crosswalk_segments cs
+            JOIN street_segments s ON s.OBJECTID = cs.street_segment_id
+            WHERE cs.is_vehicle_edge = TRUE
+            GROUP BY crosswalk_id
+        ) x
+        WHERE crosswalk_segments.crosswalk_id = x.crosswalk_id;
         """
     )
