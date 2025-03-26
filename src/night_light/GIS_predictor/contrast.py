@@ -36,7 +36,6 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
                 cl.geometry AS crosswalk_center,
                 gc.a_to_b,
                 ST_MakeLine(ST_GeomFromText(from_coord), ST_GeomFromText(to_coord)) AS from_to_to,
-                cl.streetlight_geom
             FROM crosswalk_centers_lights cl
             JOIN grouped_crosswalks gc USING (crosswalk_id)
         ),
