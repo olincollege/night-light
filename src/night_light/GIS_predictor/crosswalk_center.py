@@ -2,8 +2,106 @@ import duckdb
 
 
 def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
+    """Find the centers of crosswalks."""
+    # Find the centers of crosswalks for one-way and two-way streets
+    _find_crosswalk_centers_oneway(con)
+    _find_crosswalk_centers_twoway(con)
+
+    # Combine the one-way and two-way centers into one table
+    con.execute(
+        """
+        CREATE OR REPLACE TABLE crosswalk_centers AS
+        SELECT
+            crosswalk_id,
+            street_segment_id,
+            ped_edge_geom,
+            street_center_point,
+            geometry,
+            center_id,
+            is_oneway
+        FROM crosswalk_centers_oneway
+        
+        UNION ALL
+        
+        SELECT
+            crosswalk_id,
+            street_segment_id,
+            ped_edge_geom,
+            street_center_point,
+            geometry,
+            center_id,
+            is_oneway
+        FROM crosswalk_centers_twoway;
+        
+        DROP TABLE IF EXISTS crosswalk_centers_oneway;
+        DROP TABLE IF EXISTS crosswalk_centers_twoway;
+        """
+    )
+
+
+def _find_crosswalk_centers_oneway(con: duckdb.DuckDBPyConnection):
     """
-    Find centers of the crosswalks for each side of the road.
+    Find crosswalk centers for one-way streets.
+
+    Steps to get the centers of the crosswalks:
+    1. Find the points of intersection of the crosswalks with the street segments.
+    2. Find the midpoint of the intersection points.
+    3. Save the midpoint as a point in the database as a new table.
+    """
+    con.execute(
+        """
+        CREATE OR REPLACE TABLE crosswalk_centers_oneway AS
+        SELECT
+            i.crosswalk_id,
+            i.street_segment_id,
+            p.ped_edge_geom,
+            ST_AsText(i.center_geom) AS street_center_point,
+            ST_AsText(i.center_geom) AS geometry,
+            TRUE AS is_oneway,
+            'A' AS center_id
+        FROM (
+            SELECT
+                cw.OBJECTID AS crosswalk_id,
+                s.OBJECTID AS street_segment_id,
+                ST_Centroid(
+                    ST_Intersection(
+                        ST_Boundary(ST_GeomFromText(cw.geometry)),
+                        ST_GeomFromText(s.geometry)
+                    )
+                ) AS center_geom
+            FROM crosswalks cw
+            JOIN street_segments s
+                ON ST_Intersects(ST_Boundary(ST_GeomFromText(cw.geometry)), ST_GeomFromText(s.geometry))
+            WHERE cw.OBJECTID IN (
+                SELECT DISTINCT crosswalk_id FROM crosswalk_segments WHERE is_oneway = TRUE
+            )
+        ) i
+        LEFT JOIN (
+            SELECT
+                cs.crosswalk_id,
+                cs.geometry AS ped_edge_geom
+            FROM crosswalk_segments cs
+            JOIN (
+                SELECT
+                    crosswalk_id,
+                    MIN(edge_id) AS min_edge_id
+                FROM crosswalk_segments
+                WHERE is_vehicle_edge = FALSE
+                  AND crosswalk_id IN (
+                      SELECT DISTINCT crosswalk_id FROM crosswalk_segments WHERE is_oneway = TRUE
+                  )
+                GROUP BY crosswalk_id
+            ) selected
+            ON cs.crosswalk_id = selected.crosswalk_id AND cs.edge_id = selected.min_edge_id
+        ) p
+        ON i.crosswalk_id = p.crosswalk_id;
+        """
+    )
+
+
+def _find_crosswalk_centers_twoway(con: duckdb.DuckDBPyConnection):
+    """
+    Find crosswalk centers for two-way streets.
 
     Steps to get the centers of the crosswalks:
         * Assume that there are always 2 centers for each crosswalk that mark each vehicle
@@ -24,7 +122,7 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
     """
     con.execute(
         """
-        CREATE OR REPLACE TABLE crosswalk_centers AS
+        CREATE OR REPLACE TABLE crosswalk_centers_twoway AS
         WITH intersection_points AS (
             SELECT
                 cw.OBJECTID AS crosswalk_id,
@@ -70,9 +168,10 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
                         ST_Y(ST_PointN(ST_GeomFromText(geometry), 1)) +
                         ST_Y(ST_PointN(ST_GeomFromText(geometry), 2))
                     ) / 2.0
-                ) AS edge_mid
+                ) AS edge_mid,
+                is_oneway
             FROM crosswalk_segments
-            WHERE is_vehicle_edge = FALSE
+            WHERE is_vehicle_edge = FALSE AND is_oneway = FALSE
         ),
         centers AS (
             SELECT
@@ -85,7 +184,8 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
                         (ST_X(e.edge_mid) + ST_X(i.intersection_center)) / 2.0,
                         (ST_Y(e.edge_mid) + ST_Y(i.intersection_center)) / 2.0
                     )
-                ) AS geometry
+                ) AS geometry,
+                e.is_oneway
             FROM ped_edge_mid e
             JOIN intersection_mid i USING (crosswalk_id)
         )
@@ -99,7 +199,8 @@ def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
                 WHEN rn = 1 THEN 'A'
                 WHEN rn = 2 THEN 'B'
                 ELSE NULL
-            END AS center_id
+            END AS center_id,
+            is_oneway
         FROM (
             SELECT
                 *,
