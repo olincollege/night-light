@@ -58,7 +58,7 @@ if __name__ == "__main__":
     brightness.calculate_percieved_brightness(con)
 
     # Make comparison table
-    file_path = abs_path("../../SVData2-11.csv")
+    file_path = abs_path("../../SVDataCollection2-11.csv")
     compare.create_compare_table(con, file_path)
 
     # Save the results to parquet
