@@ -152,7 +152,7 @@ def _find_crosswalk_centers_twoway(con: duckdb.DuckDBPyConnection):
             FROM intersection_points
             GROUP BY crosswalk_id
             -- Use >= 2 (not = 2) so you include crosswalks with more than 2 intersection points
-            HAVING COUNT(*) >= 2
+            HAVING COUNT(*) >= 1
         ),
         ped_edge_mid AS (
             SELECT
@@ -206,6 +206,7 @@ def _find_crosswalk_centers_twoway(con: duckdb.DuckDBPyConnection):
                 *,
                 ROW_NUMBER() OVER (PARTITION BY crosswalk_id ORDER BY geometry) AS rn
             FROM centers
-        ) sub;
+        ) sub
+        WHERE rn <= 2;
         """
     )
