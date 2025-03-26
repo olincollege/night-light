@@ -12,12 +12,22 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
         """
         CREATE OR REPLACE TABLE classified_streetlights AS
         WITH centers AS (
-            -- Get geometries for center_id A and B to construct the `a_to_b` line
             SELECT
                 crosswalk_id,
                 MAX(CASE WHEN center_id = 'A' THEN geometry END) AS geom_a,
-                MAX(CASE WHEN center_id = 'B' THEN geometry END) AS geom_b
+                MAX(
+                    CASE 
+                        WHEN center_id = 'B' THEN geometry
+                        WHEN is_oneway THEN ST_AsText(
+                            ST_Point(
+                                (ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)) + ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 2))) / 2.0,
+                                (ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)) + ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 2))) / 2.0
+                            )
+                        )
+                    END
+                ) AS geom_b
             FROM crosswalk_centers_lights
+            WHERE center_id IS NOT NULL OR is_oneway = TRUE
             GROUP BY crosswalk_id
         ),
         grouped_crosswalks AS (
@@ -80,8 +90,8 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
                 c.crosswalk_id,
                 c.center_id,
                 c.streetlight_id,
-                c.center_to_light AS line_geom,
-                ST_PointN(c.center_to_light,2) AS geometry,
+                ST_AsText(c.center_to_light) AS line_geom,
+                ST_AsText(ST_PointN(c.center_to_light,2)) AS geometry,
                 CASE 
                     WHEN c.from_to_sign = c.center_to_light_sign THEN 'to'
                     ELSE 'from'
