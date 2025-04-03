@@ -31,61 +31,60 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
             GROUP BY crosswalk_id
         ),
         grouped_crosswalks AS (
-            -- 1. Construct the `a_to_b` line using center_id A and B
             SELECT
-                c.crosswalk_id,
-                ST_MakeLine(ST_GeomFromText(c.geom_a), ST_GeomFromText(c.geom_b)) AS a_to_b
-            FROM centers c
+                crosswalk_id,
+                ST_MakeLine(ST_GeomFromText(geom_a), ST_GeomFromText(geom_b)) AS a_to_b
+            FROM centers
         ),
         from_to_vectors AS (
-            -- 2. Add column `from_to_to` for every crosswalk row using from_coord and to_coord
             SELECT
                 cl.crosswalk_id,
                 cl.center_id,
                 cl.streetlight_id,
                 cl.geometry AS crosswalk_center,
                 gc.a_to_b,
-                ST_MakeLine(ST_GeomFromText(from_coord), ST_GeomFromText(to_coord)) AS from_to_to,
+                ST_MakeLine(ST_GeomFromText(from_coord), ST_GeomFromText(to_coord)) AS from_to_to
             FROM crosswalk_centers_lights cl
             JOIN grouped_crosswalks gc USING (crosswalk_id)
         ),
         exploded_streetlights AS (
-            -- 3. Unnest `streetlight_id` and fetch geometry from `streetlights`
             SELECT
                 f.crosswalk_id,
                 f.center_id,
-                t.streetlight_id,  -- Unnested value
+                t.streetlight_id,
                 f.a_to_b,
                 f.from_to_to,
                 ST_MakeLine(ST_GeomFromText(f.crosswalk_center), ST_GeomFromText(s.geometry)) AS center_to_light
             FROM from_to_vectors f
-            CROSS JOIN UNNEST(f.streetlight_id) AS t(streetlight_id)  -- Unnest array
-            JOIN streetlights s ON s.OBJECTID = t.streetlight_id  -- Fetch geometry from `streetlights`
+            CROSS JOIN UNNEST(f.streetlight_id) AS t(streetlight_id)
+            JOIN streetlights s ON s.OBJECTID = t.streetlight_id
         ),
         cross_product_computation AS (
-            -- 4. Compute the sign of the cross product between a_to_b and from_to_to
-            -- 5. Compute the sign of the cross product between a_to_b and center_to_light
             SELECT
                 e.crosswalk_id,
                 e.center_id,
                 e.streetlight_id,
                 e.center_to_light,
+                e.a_to_b,
+                (ST_X(ST_PointN(e.center_to_light,2)) - ST_X(ST_PointN(e.center_to_light,1))) AS delta_x_cl,
+                (ST_Y(ST_PointN(e.center_to_light,2)) - ST_Y(ST_PointN(e.center_to_light,1))) AS delta_y_cl,
+                (ST_X(ST_PointN(e.a_to_b,2)) - ST_X(ST_PointN(e.a_to_b,1))) AS delta_x_ab,
+                (ST_Y(ST_PointN(e.a_to_b,2)) - ST_Y(ST_PointN(e.a_to_b,1))) AS delta_y_ab,
                 SIGN(
-                    (ST_X(ST_PointN(a_to_b,2)) - ST_X(ST_PointN(a_to_b,1))) * 
-                    (ST_Y(ST_PointN(from_to_to,2)) - ST_Y(ST_PointN(from_to_to,1))) - 
-                    (ST_Y(ST_PointN(a_to_b,2)) - ST_Y(ST_PointN(a_to_b,1))) * 
-                    (ST_X(ST_PointN(from_to_to,2)) - ST_X(ST_PointN(from_to_to,1)))
+                    (ST_X(ST_PointN(e.a_to_b,2)) - ST_X(ST_PointN(e.a_to_b,1))) * 
+                    (ST_Y(ST_PointN(e.from_to_to,2)) - ST_Y(ST_PointN(e.from_to_to,1))) - 
+                    (ST_Y(ST_PointN(e.a_to_b,2)) - ST_Y(ST_PointN(e.a_to_b,1))) * 
+                    (ST_X(ST_PointN(e.from_to_to,2)) - ST_X(ST_PointN(e.from_to_to,1)))
                 ) AS from_to_sign,
                 SIGN(
-                    (ST_X(ST_PointN(a_to_b,2)) - ST_X(ST_PointN(a_to_b,1))) * 
-                    (ST_Y(ST_PointN(center_to_light,2)) - ST_Y(ST_PointN(center_to_light,1))) - 
-                    (ST_Y(ST_PointN(a_to_b,2)) - ST_Y(ST_PointN(a_to_b,1))) * 
-                    (ST_X(ST_PointN(center_to_light,2)) - ST_X(ST_PointN(center_to_light,1)))
+                    (ST_X(ST_PointN(e.a_to_b,2)) - ST_X(ST_PointN(e.a_to_b,1))) * 
+                    (ST_Y(ST_PointN(e.center_to_light,2)) - ST_Y(ST_PointN(e.center_to_light,1))) - 
+                    (ST_Y(ST_PointN(e.a_to_b,2)) - ST_Y(ST_PointN(e.a_to_b,1))) * 
+                    (ST_X(ST_PointN(e.center_to_light,2)) - ST_X(ST_PointN(e.center_to_light,1)))
                 ) AS center_to_light_sign
             FROM exploded_streetlights e
         ),
         classification AS (
-            -- 6. Apply classification logic where all points are classified as 'to_side' or 'from_side'
             SELECT
                 c.crosswalk_id,
                 c.center_id,
@@ -95,10 +94,20 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
                 CASE 
                     WHEN c.from_to_sign = c.center_to_light_sign THEN 'to'
                     ELSE 'from'
-                END AS side
+                END AS side,
+                ATAN2(
+                    c.delta_x_cl * c.delta_y_ab - c.delta_y_cl * c.delta_x_ab,
+                    c.delta_x_cl * c.delta_x_ab + c.delta_y_cl * c.delta_y_ab
+                ) AS angle_rad,
+                ABS(SIN(
+                    ATAN2(
+                        c.delta_x_cl * c.delta_y_ab - c.delta_y_cl * c.delta_x_ab,
+                        c.delta_x_cl * c.delta_x_ab + c.delta_y_cl * c.delta_y_ab
+                    )
+                )) AS abs_sin_angle,
+                c.a_to_b
             FROM cross_product_computation c
         )
-        -- 7. Final table with `crosswalk_id`, `center_id`, `streetlight_id`, `side`, `geometry`
         SELECT * FROM classification;
         """
     )
