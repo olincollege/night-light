@@ -12,7 +12,7 @@ def calculate_percieved_brightness(conn):
     conn.execute(
         """
     UPDATE crosswalk_centers_contrast
-    SET light_heuristic = from_heuristic + to_heuristic;
+    SET light_heuristic = from_brightness_heuristic + to_brightness_heuristic;
     """
     )
 
