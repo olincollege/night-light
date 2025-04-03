@@ -149,8 +149,10 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
             SELECT 
                 crosswalk_id,
                 center_id,
-                SUM(CASE WHEN side = 'to' THEN 1.0 / (dist * dist) ELSE 0 END) AS to_heuristic,
-                SUM(CASE WHEN side = 'from' THEN 1.0 / (dist * dist) ELSE 0 END) AS from_heuristic
+                SUM(CASE WHEN side = 'to' THEN abs_sin_angle / (dist * dist) ELSE 0 END) AS to_contrast_heuristic,
+                SUM(CASE WHEN side = 'from' THEN abs_sin_angle / (dist * dist) ELSE 0 END) AS from_contrast_heuristic,
+                SUM(CASE WHEN side = 'to' THEN 1.0 / (dist * dist) ELSE 0 END) AS to_brightness_heuristic,
+                SUM(CASE WHEN side = 'from' THEN 1.0 / (dist * dist) ELSE 0 END) AS from_brightness_heuristic
             FROM classified_streetlights
             GROUP BY crosswalk_id, center_id
         ),
@@ -159,12 +161,33 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
             SELECT 
                 h.crosswalk_id,
                 h.center_id,
-                h.to_heuristic,
-                h.from_heuristic,
+                h.to_contrast_heuristic,
+                h.from_contrast_heuristic,
+                h.to_brightness_heuristic,
+                h.from_brightness_heuristic,
                 CASE 
-                    WHEN ABS(h.from_heuristic - h.to_heuristic) <= {threshold} THEN 'no contrast'
-                    WHEN h.from_heuristic > h.to_heuristic THEN 'positive contrast'
-                    WHEN h.from_heuristic < h.to_heuristic THEN 'negative contrast'
+                    WHEN h.to_contrast_heuristic = 0 OR h.from_contrast_heuristic = 0 THEN
+                        CASE 
+                            WHEN ABS(h.from_contrast_heuristic - h.to_contrast_heuristic) <= ? THEN 'no contrast'
+                            WHEN ABS(h.from_contrast_heuristic - h.to_contrast_heuristic) <= ? THEN 
+                                CASE 
+                                    WHEN h.from_contrast_heuristic > h.to_contrast_heuristic THEN 'weak positive contrast'
+                                    ELSE 'weak negative contrast'
+                                END
+                            WHEN h.from_contrast_heuristic > h.to_contrast_heuristic THEN 'strong positive contrast'
+                            ELSE 'strong negative contrast'
+                        END
+                    ELSE
+                        CASE 
+                            WHEN ABS(h.from_contrast_heuristic - h.to_contrast_heuristic) <= ? THEN 'no contrast'
+                            WHEN ABS(h.from_contrast_heuristic - h.to_contrast_heuristic) <= ? THEN 
+                                CASE 
+                                    WHEN h.from_contrast_heuristic > h.to_contrast_heuristic THEN 'weak positive contrast'
+                                    ELSE 'weak negative contrast'
+                                END
+                            WHEN h.from_contrast_heuristic > h.to_contrast_heuristic THEN 'strong positive contrast'
+                            ELSE 'strong negative contrast'
+                        END
                 END AS contrast_heuristic
             FROM heuristics h
         )
@@ -175,5 +198,6 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
         LEFT JOIN crosswalk_centers_lights cl 
         ON c.crosswalk_id = cl.crosswalk_id 
         AND c.center_id = cl.center_id;
-    """
+    """,
+        [threshold / 2, threshold * 3 / 4, threshold * 3 / 4, threshold],
     )
