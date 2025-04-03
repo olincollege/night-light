@@ -47,7 +47,7 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
             gl.light_geom
         FROM geom_inputs gi
         JOIN geom_lights gl
-            ON ST_DWithin(gl.light_geom, gi.cross_geom, ?)
+            ON ST_DWithin_Spheroid(gl.light_geom, gi.cross_geom, ?)
     )
     -- 3. Aggregate distances and IDs
     SELECT
@@ -59,10 +59,8 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
     GROUP BY crosswalk_id, cross_geom;
     """
 
-    dist_degrees = meters_to_degrees(dist)
-
     # Execute the query
-    crosswalks_streetlights = con.execute(query, (dist_degrees,)).fetchall()
+    crosswalks_streetlights = con.execute(query, [dist]).fetchall()
 
     print(datetime.datetime.now(), "adding to db")
 
