@@ -1,19 +1,19 @@
 import inspect
-import os
 
-import duckdb
-
-from night_light.analyzer import (identify_vehicle_direction,
-                                  simplify_crosswalk_polygon_to_box,
-                                  decompose_crosswalk_edges,
-                                  classify_edges_by_intersection,
-                                  find_crosswalk_centers,
-                                  create_crosswalk_centers_lights,
-                                  find_streetlights_crosswalk_centers,
-                                  classify_lights_by_side, add_streetlight_distances,
-                                  calculate_contrast_heuristics,
-                                  calculate_percieved_brightness)
-from night_light.utils import util_duckdb
+from night_light.analyzer import (
+    identify_vehicle_direction,
+    simplify_crosswalk_polygon_to_box,
+    decompose_crosswalk_edges,
+    classify_edges_by_intersection,
+    find_crosswalk_centers,
+    create_crosswalk_centers_lights,
+    find_streetlights_crosswalk_centers,
+    classify_lights_by_side,
+    add_streetlight_distances,
+    calculate_contrast_heuristics,
+    calculate_percieved_brightness,
+)
+from night_light.util_duckdb import *
 
 
 # move to a until file?
@@ -23,7 +23,7 @@ def abs_path(relative_path: str) -> str:
 
     Args:
         relative_path: a string of a file name
-    
+
     Returns:
         A string that is a full file path in the user's directory
     """
@@ -43,12 +43,12 @@ def initialize_db(con: duckdb.DuckDBPyConnection):
         (abs_path("../datasets/boston_streetlights.geojson"), "streetlights"),
         (abs_path("../datasets/boston_street_segments.geojson"), "street_segments"),
     ]
-    util_duckdb.load_multiple_datasets(con, datasets)
+    load_multiple_datasets(con, datasets)
 
 
 if __name__ == "__main__":
     # Initilize the .db file and connect to it
-    con = util_duckdb.connect_to_duckdb(abs_path("../boston_contrast.db"))
+    con = connect_to_duckdb(abs_path("../boston_contrast.db"))
     initialize_db(con)
 
     # Simplify crosswalks and decompose edges
@@ -76,11 +76,23 @@ if __name__ == "__main__":
     output_dir = abs_path("../output")
     os.makedirs(output_dir, exist_ok=True)
 
-    util_duckdb.save_table_to_parquet(con, "crosswalk_centers_contrast",
-        os.path.join(output_dir, "crosswalk_centers_contrast.parquet"), )
-    util_duckdb.save_table_to_csv(con, "classified_streetlights",
-        os.path.join(output_dir, "classified_streetlights.csv"), )
-    util_duckdb.save_table_to_parquet(con, "crosswalk_centers_lights",
-        os.path.join(output_dir, "crosswalk_centers_lights.parquet"), )
-    util_duckdb.save_table_to_parquet(con, "streetlights",
-        os.path.join(output_dir, "streetlights.parquet"), )
+    save_table_to_parquet(
+        con,
+        "crosswalk_centers_contrast",
+        os.path.join(output_dir, "crosswalk_centers_contrast.parquet"),
+    )
+    save_table_to_csv(
+        con,
+        "classified_streetlights",
+        os.path.join(output_dir, "classified_streetlights.csv"),
+    )
+    save_table_to_parquet(
+        con,
+        "crosswalk_centers_lights",
+        os.path.join(output_dir, "crosswalk_centers_lights.parquet"),
+    )
+    save_table_to_parquet(
+        con,
+        "streetlights",
+        os.path.join(output_dir, "streetlights.parquet"),
+    )
