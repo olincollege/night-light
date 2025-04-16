@@ -1,23 +1,15 @@
-from night_light.analyzer import (
-    identify_vehicle_direction,
-    simplify_crosswalk_polygon_to_box,
-    decompose_crosswalk_edges,
-    classify_edges_by_intersection,
-    find_crosswalk_centers,
-    create_crosswalk_centers_lights,
-    find_streetlights_crosswalk_centers,
-    classify_lights_by_side,
-    add_streetlight_distances,
-    calculate_contrast_heuristics,
-    calculate_percieved_brightness,
-)
-from night_light.util_duckdb import *
-from night_light.util_duckdb import abs_path
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+
+from analyzer import *
+from util_duckdb import *
 
 
 def initialize_db(con: duckdb.DuckDBPyConnection):
     """
-    Create an inital .db file with crosswalks, streetlights, and street_segments datasets
+    Create an initial .db file with crosswalks, streetlights, and street_segments datasets
     """
     datasets = [
         (abs_path("../datasets/boston_crosswalks.geojson"), "crosswalks"),
@@ -77,3 +69,7 @@ def main():
         "streetlights",
         os.path.join(output_dir, "streetlights.parquet"),
     )
+
+
+if __name__ == "__main__":
+    main()

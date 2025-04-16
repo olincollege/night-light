@@ -1,8 +1,10 @@
 import duckdb
-import night_light.utils.util_duckdb as util_duckdb
 
-## Processes crosswalk geometry data stored in a DuckDB database. It simplifies 
-## crosswalk shapes, breaks them into line segments, and classifies those segments 
+from night_light.util_duckdb import query_table_to_gdf
+
+
+## Processes crosswalk geometry data stored in a DuckDB database. It simplifies
+## crosswalk shapes, breaks them into line segments, and classifies those segments
 ## based on whether they intersect streets (and if those streets are one-way).
 
 
@@ -10,7 +12,7 @@ def simplify_crosswalk_polygon_to_box(con: duckdb.DuckDBPyConnection):
     """
     Converts each crosswalk polygon into its minimum bounding rectangle (oriented).
     """
-    gdf = util_duckdb.query_table_to_gdf(con, "crosswalks", "SELECT * FROM crosswalks")
+    gdf = query_table_to_gdf(con, "crosswalks", "SELECT * FROM crosswalks")
     # Get oriented bounding rectangles
     gdf["oriented_env"] = gdf["geometry"].apply(
         lambda geom: geom.minimum_rotated_rectangle
