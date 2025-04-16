@@ -1,7 +1,7 @@
 import duckdb
 
-## Classifies streetlights relative to crosswalk centers to determine which side (from/to) they're on. Looks at the 
-## distance and angle each streetlight is compared to a crosswalk center point, and computes a contrast heuristic 
+## Classifies streetlights relative to crosswalk centers to determine which side (from/to) they're on. Looks at the
+## distance and angle each streetlight is compared to a crosswalk center point, and computes a contrast heuristic
 ## to determine postive, negative and no contrast.
 
 
@@ -109,7 +109,7 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
                         c.delta_x_cl * c.delta_x_ab + c.delta_y_cl * c.delta_y_ab
                     )
                 )) AS abs_sin_angle,
-                c.a_to_b
+                ST_AsText(c.a_to_b) AS a_to_b
             FROM cross_product_computation c
         )
         SELECT * FROM classification;
