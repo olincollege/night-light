@@ -27,6 +27,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.graphviz",
 ]
 autosummary_generate = True
 # sphinx-autodoc-typehints settings
@@ -50,3 +51,4 @@ rst_prolog = """
     :language: python
     :class: highlight
 """
+graphviz_output_format = "svg"

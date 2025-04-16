@@ -162,3 +162,18 @@ def save_table_to_parquet(
     """
     df = _query_table_to_df(con, table_name, f"SELECT * FROM {table_name}")
     df.to_parquet(filename)
+
+
+def save_table_to_csv(
+    con: duckdb.DuckDBPyConnection, table_name: str, filename: str
+) -> None:
+    """
+    Save a DuckDB table to a csv file.
+
+    Args:
+        con (duckdb.DuckDBPyConnection): Connection to the DuckDB database.
+        table_name (str): Name of the table to save.
+        filename (str): Path to the output csv file.
+    """
+    df = _query_table_to_df(con, table_name, f"SELECT * FROM {table_name}")
+    df.to_csv(filename, index=False)
