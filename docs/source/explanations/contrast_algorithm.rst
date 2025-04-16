@@ -8,9 +8,37 @@ This document outlines the process and algorithms used to compute contrast heuri
 Process Flow
 ------------
 
+.. graphviz::
+    :name: sphinx.ext.graphviz
+    :caption: Data pipeline for crosswalk contrast and brightness heuristic
+    :alt: Data pipeline for Crosswalk Contrast and Brightness Heuristic
+    :align: center
+    :layout: neato
+
+    digraph "sphinx-ext-graphviz" {
+        rankdir="LR";
+        graph [fontname="Verdana", fontsize="12"];
+        node [fontname="Verdana", fontsize="12", shape=box, style=rounded];
+
+        load_data [label="Load GeoJSON data\n(crosswalks, streetlights, road segments)"];
+        simplify [label="Simplify crosswalk geometry\nand decompose edges"];
+        classify_edges [label="Classify edges\n(vehicle vs pedestrian)"];
+        compute_centers [label="Compute crosswalk centers"];
+        detect_direction [label="Detect vehicle direction at each center"];
+        find_streetlights [label="Find streetlights near each center"];
+        classify_sides [label="Classify streetlights by vehicle side\nand append distance info"];
+        compute_heuristics [label="Compute brightness & contrast heuristics"];
+        aggregate_results [label="Aggregate and store as table"];
+
+        load_data -> simplify -> classify_edges -> compute_centers;
+        compute_centers -> detect_direction -> find_streetlights;
+        find_streetlights -> classify_sides -> compute_heuristics -> aggregate_results;
+    }
+
+
 1. **Load Datasets to Database**:
 
-- The entry script `main.py` starts by generating a mini version of a bronze-level database which will be used later for manipulation.
+- The entry script `main.py` starts by generating a DuckDB database which will be the basis for analysis.
 - Following GeoJSON datasets are loaded into the database:
     - Crosswalks (`datasets/boston_crosswalks.geojson`)
     - Streetlights (`datasets/boston_streetlights.geojson`)
@@ -18,15 +46,11 @@ Process Flow
 
 2. **Classify Crosswalk Edges**:
 
-- Initialize `boston_constrast.db` with Boston's street segments and crosswalk datasets to process the edges of crosswalks.
 - Convert crosswalk polygons into simplified minimum rotated rectangle. This ensures that there are always exactly 4 edges to a crosswalk.
 - Break down crosswalk rectangles into individual edges. Each edge is represented by a unique ID and its start and end points.
 - Classify crosswalk edges based on intersections with street segments. If the edge intersects with a street segment, classify as `is_vehicle_edge = TRUE` and otherwise `FALSE`. Alongside, store the intersecting street segment ID.
 
 3. **Find Crosswalk Centers**:
-
-.. note::
-    Assume that there are always 2 centers for each crosswalk that mark each vehicle sides of the road. This means that we're assuming 2-way traffic.
 
 - Find the points of intersection of the crosswalks with the street segments.
 - Compute the midpoint of the intersection points.
@@ -37,7 +61,7 @@ Process Flow
 4. **Identify Vehicle Direction**:
 
 .. note::
-    Direction of vehicles is critical in determining the contrast level of a pedestrian observed by the driver. Thus, we identify the direction assuming that the vehicle always drives on the right side of the road.
+    Direction of vehicles is critical in determining the contrast level of a pedestrian observed by the driver. Thus, we identify the direction assuming that the vehicle always drives on the right side of the road, except for one-way streets.
 
 - Case 1: If the crosswalk center’s X value is greater than the street center point’s X value, we assume the vehicle is moving from `y_smaller` to `y_larger`.
     – For the `from_coord`, choose the vertex of the pedestrian edge with the smaller Y value.
