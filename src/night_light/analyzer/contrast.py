@@ -117,7 +117,7 @@ def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
     )
 
 
-def add_distances(con: duckdb.DuckDBPyConnection):
+def add_streetlight_distances(con: duckdb.DuckDBPyConnection):
     """Append distances of the streetlights to the table."""
     con.execute(
         """

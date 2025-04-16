@@ -3,13 +3,18 @@ import os
 
 import duckdb
 
-import night_light.utils.util_duckdb as util_duckdb
-import night_light.GIS_predictor.vehicle_direction as vehicle_direction
-import night_light.GIS_predictor.crosswalk_center as crosswalk_center
-import night_light.GIS_predictor.edge_classifier as edge_classifier
-import night_light.GIS_predictor.distance as distance
-import night_light.GIS_predictor.percieved_brightness as brightness
-import night_light.GIS_predictor.contrast as contrast
+from night_light.analyzer import (identify_vehicle_direction,
+                                  simplify_crosswalk_polygon_to_box,
+                                  decompose_crosswalk_edges,
+                                  classify_edges_by_intersection,
+                                  find_crosswalk_centers,
+                                  create_crosswalk_centers_lights,
+                                  find_streetlights_crosswalk_centers,
+                                  classify_lights_by_side, add_streetlight_distances,
+                                  calculate_contrast_heuristics,
+                                  calculate_percieved_brightness)
+from night_light.utils import util_duckdb
+
 
 # move to a until file?
 def abs_path(relative_path: str) -> str:
@@ -47,47 +52,35 @@ if __name__ == "__main__":
     initialize_db(con)
 
     # Simplify crosswalks and decompose edges
-    edge_classifier.simplify_crosswalk_polygon_to_box(con)
-    edge_classifier.decompose_crosswalk_edges(con)
+    simplify_crosswalk_polygon_to_box(con)
+    decompose_crosswalk_edges(con)
 
     # Get centers and directions of crosswalks
-    edge_classifier.classify_edges_by_intersection(con)
-    crosswalk_center.find_crosswalk_centers(con)
-    vehicle_direction.identify_vehicle_direction(con)
+    classify_edges_by_intersection(con)
+    find_crosswalk_centers(con)
+    identify_vehicle_direction(con)
 
     # Get distance between crosswalks and streetlights
-    distance.create_crosswalk_centers_lights(con)
-    distance.find_streetlights_crosswalk_centers(con, 20)
+    create_crosswalk_centers_lights(con)
+    find_streetlights_crosswalk_centers(con, 20)
 
     # Calculate contrast hueristic per streetlight centerpoint
-    contrast.classify_lights_by_side(con)
-    contrast.add_distances(con)
-    contrast.calculate_contrast_heuristics(con, 0.01)
+    classify_lights_by_side(con)
+    add_streetlight_distances(con)
+    calculate_contrast_heuristics(con, 0.01)
 
     # Get brightness hueristic per streetlight centerpoint
-    brightness.calculate_percieved_brightness(con)
+    calculate_percieved_brightness(con)
 
     # Save the results to parquet
     output_dir = abs_path("output")
     os.makedirs(output_dir, exist_ok=True)
 
-    util_duckdb.save_table_to_parquet(
-        con,
-        "crosswalk_centers_contrast",
-        os.path.join(output_dir, "crosswalk_centers_contrast.parquet"),
-    )
-    util_duckdb.save_table_to_csv(
-        con,
-        "classified_streetlights",
-        os.path.join(output_dir, "classified_streetlights.csv"),
-    )
-    util_duckdb.save_table_to_parquet(
-        con,
-        "crosswalk_centers_lights",
-        os.path.join(output_dir, "crosswalk_centers_lights.parquet"),
-    )
-    util_duckdb.save_table_to_parquet(
-        con,
-        "streetlights",
-        os.path.join(output_dir, "streetlights.parquet"),
-    )
+    util_duckdb.save_table_to_parquet(con, "crosswalk_centers_contrast",
+        os.path.join(output_dir, "crosswalk_centers_contrast.parquet"), )
+    util_duckdb.save_table_to_csv(con, "classified_streetlights",
+        os.path.join(output_dir, "classified_streetlights.csv"), )
+    util_duckdb.save_table_to_parquet(con, "crosswalk_centers_lights",
+        os.path.join(output_dir, "crosswalk_centers_lights.parquet"), )
+    util_duckdb.save_table_to_parquet(con, "streetlights",
+        os.path.join(output_dir, "streetlights.parquet"), )
