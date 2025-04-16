@@ -31,20 +31,8 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Download the YOLOv8 model
-
-Download the YOLOv8 model from the following link: [YOLOv8](https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8m.pt). Place the model in the root directory.
-
-### Set the environment variables
-
-Create a `.env` file in the root directory and add the following environment variables:
-
-```sh
-IMAGE_PATH="path/to/image"
-```
-
 ### Run the script
 
 ```sh
-python pedestrian_detection.py
+python main.py
 ```
