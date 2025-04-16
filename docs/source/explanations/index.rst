@@ -1,5 +1,5 @@
 Explanations
-=========================
+============
 
 
 .. toctree::
@@ -7,4 +7,4 @@ Explanations
     :caption: Contents:
 
     datasets
-    contrast_algorithm
+    brightness_contrast_algorithm
