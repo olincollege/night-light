@@ -1,6 +1,6 @@
 import duckdb
 
-## Determines the direction of vehicle flow relative to pedestrian crosswalks and stores 
+## Determines the direction of vehicle flow relative to pedestrian crosswalks and stores
 ## this direction using from_coord and to_coord in the crosswalk_centers table.
 
 
@@ -9,18 +9,12 @@ def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
     Identify the direction of the vehicle for each side of the road segment.
 
     One-way streets:
-    1.	Crop Street Segment:
-        Intersect the crosswalk boundary with its street segment to isolate the crossing
-        portion.
-    2.	Compute Relative Orientation:
-        Use the 2D cross product of vectors from the cropped street segment and
-        pedestrian edge to determine direction.
-    3.	Assign Endpoints:
-        If the cross product ≥ 0:
-            from_coord = first point of ped_edge_geom
-            to_coord = second point
-        Else:
-            Reverse the order.
+    1.	Find the intersecting street segment to the crosswalk.
+    2.  Compute relative distance between the first point of the street segment and the
+        two points of the pedestrian edge. The closer of the two points to the street
+        segment's first point is the "from_coord" and the other is the "to_coord." This
+        is predefined by the street segments dataset since all the one ways were marked
+        as `FT`.
 
     Two-way streets:
     - Case 1: If the crosswalk center’s X value is greater than the street center
@@ -49,7 +43,16 @@ def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
         
         ALTER TABLE crosswalk_centers ADD COLUMN from_coord VARCHAR;
         ALTER TABLE crosswalk_centers ADD COLUMN to_coord VARCHAR;
-        
+        """
+    )
+    _identify_vehicle_direction_oneway(con)
+    _identify_vehicle_direction_twoway(con)
+
+
+def _identify_vehicle_direction_oneway(con: duckdb.DuckDBPyConnection):
+    """Identify the direction of the vehicle for one-way streets."""
+    con.execute(
+        """
         -- One-way streets
         UPDATE crosswalk_centers cc
         SET 
@@ -83,7 +86,14 @@ def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
         FROM street_segments s
         WHERE cc.street_segment_id = s.OBJECTID
         AND cc.is_oneway = TRUE;
-        
+        """
+    )
+
+
+def _identify_vehicle_direction_twoway(con: duckdb.DuckDBPyConnection):
+    """Identify the direction of the vehicle for two-way streets."""
+    con.execute(
+        """
         -- Two-way streets
         UPDATE crosswalk_centers
         SET
