@@ -1,5 +1,5 @@
-Crosswalk Contrast Heuristic
-============================
+Crosswalk Brightness and Contrast Heuristic
+===========================================
 
 Overview
 --------
@@ -88,7 +88,7 @@ Steps
 - If the signs of the two cross products match these lines, then the streetlights are labeled as on the ``to`` side, otherwise as on the ``from`` side.
 - Each classified streetlight entry retains its distance and calculated angle to the crosswalk direction.
 
-7. **Compute Contrast Heuristics**:
+7. **Compute Brightness and Contrast Heuristics**:
 
 - Two heuristics are computed:
     - **Contrast heuristic**: :math:`\sum \left( \frac{1}{{\text{distance}^2}} \right) * |\sin(angle)|`
