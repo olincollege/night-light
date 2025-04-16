@@ -1,4 +1,4 @@
-import duckdb.duckdb
+import duckdb
 
 
 def make_lines_from_crosswalk_to_streetlights(con: duckdb.DuckDBPyConnection):
