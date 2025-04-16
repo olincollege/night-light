@@ -144,8 +144,11 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
     con.execute(
         f"""
         CREATE TABLE crosswalk_centers_contrast AS 
-        WITH heuristics AS (
-            -- Compute heuristics once per crosswalk center
+        WITH all_centers AS (
+            SELECT DISTINCT crosswalk_id, center_id, geometry
+            FROM crosswalk_centers_lights
+        ),
+        heuristics_raw AS (
             SELECT 
                 crosswalk_id,
                 center_id,
@@ -156,8 +159,21 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
             FROM classified_streetlights
             GROUP BY crosswalk_id, center_id
         ),
+        -- Join the heuristics with the crosswalk centers so that no crosswalk center is left out
+        heuristics AS (
+            SELECT
+                ac.crosswalk_id,
+                ac.center_id,
+                ac.geometry,
+                COALESCE(hr.to_contrast_heuristic, 0) AS to_contrast_heuristic,
+                COALESCE(hr.from_contrast_heuristic, 0) AS from_contrast_heuristic,
+                COALESCE(hr.to_brightness_heuristic, 0) AS to_brightness_heuristic,
+                COALESCE(hr.from_brightness_heuristic, 0) AS from_brightness_heuristic
+            FROM all_centers ac
+            LEFT JOIN heuristics_raw hr
+            ON ac.crosswalk_id = hr.crosswalk_id AND ac.center_id = hr.center_id
+        ),
         contrast AS (
-            -- Compute contrast heuristic using the provided threshold
             SELECT 
                 h.crosswalk_id,
                 h.center_id,
@@ -191,13 +207,7 @@ def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: flo
                 END AS contrast_heuristic
             FROM heuristics h
         )
-        SELECT 
-            c.*,
-            cl.geometry  -- Add the geometry column from crosswalk_centers_lights
-        FROM contrast c
-        LEFT JOIN crosswalk_centers_lights cl 
-        ON c.crosswalk_id = cl.crosswalk_id 
-        AND c.center_id = cl.center_id;
-    """,
+        SELECT * FROM contrast;
+        """,
         [threshold / 2, threshold * 3 / 4, threshold * 3 / 4, threshold],
     )
