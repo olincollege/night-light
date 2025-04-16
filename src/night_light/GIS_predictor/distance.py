@@ -7,7 +7,7 @@ import math
 ## The goal is to populate each crosswalk center with nearby streetlight IDs and their respective distances.
 
 
-def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist: int):
+def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist: float):
     """
     Find all of the streetlights within a distance from each crosswalk center.
 
@@ -17,7 +17,7 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist: in
 
     Args:
         con: connection to duckdb table
-        dist: int of meters to search for streetlights near each crosswalk centerpoint
+        dist: float of meters to search for streetlights near each crosswalk centerpoint
     """
     long_lat_flipper(con, "streetlights")
     long_lat_flipper(con, "crosswalk_centers_lights")
@@ -86,9 +86,12 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist: in
     )
 
 
-def long_lat_flipper(con: duckdb.DuckDBPyConnection, table):
+def long_lat_flipper(con: duckdb.DuckDBPyConnection, table: str):
     """
     Flips the coordinate so that they are in lat, long order instead of long, lat
+
+    Args:
+        Name (string) of table of database
     """
     query = f"""
     ALTER TABLE {table} ADD COLUMN IF NOT EXISTS geometry_lat_long TEXT;
@@ -99,7 +102,6 @@ def long_lat_flipper(con: duckdb.DuckDBPyConnection, table):
     );
     """
     con.execute(query)
-    print("flipped coords")
 
 
 def create_crosswalk_centers_lights(con: duckdb.DuckDBPyConnection):
@@ -133,7 +135,7 @@ def create_crosswalk_centers_lights(con: duckdb.DuckDBPyConnection):
     )
 
 
-def meters_to_degrees(meters, latitude=42.3601):
+def meters_to_degrees(meters:float, latitude=42.3601):
     """
     Convert meters to degrees
 

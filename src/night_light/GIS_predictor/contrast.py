@@ -1,5 +1,9 @@
 import duckdb
 
+## Classifies streetlights relative to crosswalk centers to determine which side (from/to) they're on. Looks at the 
+## distance and angle each streetlight is compared to a crosswalk center point, and computes a contrast heuristic 
+## to determine postive, negative and no contrast.
+
 
 def classify_lights_by_side(con: duckdb.DuckDBPyConnection):
     """
@@ -136,9 +140,10 @@ def add_distances(con: duckdb.DuckDBPyConnection):
 def calculate_contrast_heuristics(con: duckdb.DuckDBPyConnection, threshold: float):
     """
     Computes to_heuristic, from_heuristic, and contrast_heuristic for crosswalk centers.
-    Uses a threshold to determine when contrast should be classified as 'no contrast'.
-    """
 
+    Uses a threshold to determine when contrast should be classified as 'no contrast'.
+    Hueristic is calculated based on distance and angle of streetlights.
+    """
     con.execute("DROP TABLE IF EXISTS crosswalk_centers_contrast;")
 
     con.execute(

@@ -1,3 +1,5 @@
+## Calculate a brightness heuristic
+
 def calculate_percieved_brightness(conn):
     """
     Calculate percieved brightness by adding A + B hueristic together.
@@ -15,5 +17,3 @@ def calculate_percieved_brightness(conn):
     SET light_heuristic = from_brightness_heuristic + to_brightness_heuristic;
     """
     )
-
-    print("Light heuristic calculated")
