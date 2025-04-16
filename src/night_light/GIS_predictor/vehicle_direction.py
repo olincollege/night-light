@@ -1,5 +1,8 @@
 import duckdb
 
+## Determines the direction of vehicle flow relative to pedestrian crosswalks and stores 
+## this direction using from_coord and to_coord in the crosswalk_centers table.
+
 
 def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
     """

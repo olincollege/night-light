@@ -1,5 +1,7 @@
 import duckdb
 
+## Calculates center points for crosswalks, taking into account whether the 
+## intersecting street is one-way or two-way. Creates the table crosswalk_centers.
 
 def find_crosswalk_centers(con: duckdb.DuckDBPyConnection):
     """Find the centers of crosswalks."""

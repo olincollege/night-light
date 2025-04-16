@@ -3,8 +3,11 @@ import duckdb
 import datetime
 import math
 
+## Links streetlights to crosswalk centers by identifying all streetlights within a specified distance of each crosswalk center. 
+## The goal is to populate each crosswalk center with nearby streetlight IDs and their respective distances.
 
-def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
+
+def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist: int):
     """
     Find all of the streetlights within a distance from each crosswalk center.
 
@@ -16,12 +19,10 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
         con: connection to duckdb table
         dist: int of meters to search for streetlights near each crosswalk centerpoint
     """
-    print(datetime.datetime.now())
-
     long_lat_flipper(con, "streetlights")
     long_lat_flipper(con, "crosswalk_centers_lights")
 
-    print(datetime.datetime.now())
+    print(datetime.datetime.now(), "Calculating distances between streetlights and crosswalks. This might take awhile...")
 
     query = """
     WITH 
@@ -62,7 +63,7 @@ def find_streetlights_crosswalk_centers(con: duckdb.DuckDBPyConnection, dist):
     # Execute the query
     crosswalks_streetlights = con.execute(query, [dist]).fetchall()
 
-    print(datetime.datetime.now(), "adding to db")
+    print(datetime.datetime.now(), "Finished calculations, adding to the db")
 
     # Update crosswalk_centers_lights with the streetlight data
     for crosswalk in crosswalks_streetlights:
