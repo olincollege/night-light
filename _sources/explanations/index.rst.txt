@@ -7,3 +7,4 @@ Explanations
     :caption: Contents:
 
     datasets
+    contrast_algorithm
