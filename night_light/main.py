@@ -39,16 +39,16 @@ def initialize_db(con: duckdb.DuckDBPyConnection):
     Create an inital .db file with crosswalks, streetlights, and street_segments datasets
     """
     datasets = [
-        (abs_path("datasets/boston_crosswalks.geojson"), "crosswalks"),
-        (abs_path("datasets/boston_streetlights.geojson"), "streetlights"),
-        (abs_path("datasets/boston_street_segments.geojson"), "street_segments"),
+        (abs_path("../datasets/boston_crosswalks.geojson"), "crosswalks"),
+        (abs_path("../datasets/boston_streetlights.geojson"), "streetlights"),
+        (abs_path("../datasets/boston_street_segments.geojson"), "street_segments"),
     ]
     util_duckdb.load_multiple_datasets(con, datasets)
 
 
 if __name__ == "__main__":
     # Initilize the .db file and connect to it
-    con = util_duckdb.connect_to_duckdb(abs_path("boston_contrast.db"))
+    con = util_duckdb.connect_to_duckdb(abs_path("../boston_contrast.db"))
     initialize_db(con)
 
     # Simplify crosswalks and decompose edges
