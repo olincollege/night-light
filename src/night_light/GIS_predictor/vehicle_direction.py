@@ -48,47 +48,38 @@ def identify_vehicle_direction(con: duckdb.DuckDBPyConnection):
         ALTER TABLE crosswalk_centers ADD COLUMN to_coord VARCHAR;
         
         -- One-way streets
-        UPDATE crosswalk_centers
+        UPDATE crosswalk_centers cc
         SET 
             from_coord = CASE
-                WHEN 
-                    (ST_X(ST_PointN(cropped_seg, 2)) - ST_X(ST_PointN(cropped_seg, 1))) *
-                    (ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 2)) - ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)))
-                    -
-                    (ST_Y(ST_PointN(cropped_seg, 2)) - ST_Y(ST_PointN(cropped_seg, 1))) *
-                    (ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 2)) - ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)))
-                    >= 0
-                THEN ST_AsText(ST_PointN(ST_GeomFromText(ped_edge_geom), 1))
-                ELSE ST_AsText(ST_PointN(ST_GeomFromText(ped_edge_geom), 2))
+                -- Compare the distance from the street's first point to the two endpoints of ped_edge_geom
+                WHEN ST_Distance(
+                        ST_PointN(ST_GeomFromText(s.geometry), 1),
+                        ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 1)
+                    )
+                    <
+                    ST_Distance(
+                        ST_PointN(ST_GeomFromText(s.geometry), 1),
+                        ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 2)
+                    )
+                THEN ST_AsText(ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 1))
+                ELSE ST_AsText(ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 2))
             END,
             to_coord = CASE
-                WHEN 
-                    (ST_X(ST_PointN(cropped_seg, 2)) - ST_X(ST_PointN(cropped_seg, 1))) *
-                    (ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 2)) - ST_Y(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)))
-                    -
-                    (ST_Y(ST_PointN(cropped_seg, 2)) - ST_Y(ST_PointN(cropped_seg, 1))) *
-                    (ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 2)) - ST_X(ST_PointN(ST_GeomFromText(ped_edge_geom), 1)))
-                    >= 0
-                THEN ST_AsText(ST_PointN(ST_GeomFromText(ped_edge_geom), 2))
-                ELSE ST_AsText(ST_PointN(ST_GeomFromText(ped_edge_geom), 1))
+                WHEN ST_Distance(
+                        ST_PointN(ST_GeomFromText(s.geometry), 1),
+                        ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 1)
+                    )
+                    <
+                    ST_Distance(
+                        ST_PointN(ST_GeomFromText(s.geometry), 1),
+                        ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 2)
+                    )
+                THEN ST_AsText(ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 2))
+                ELSE ST_AsText(ST_PointN(ST_GeomFromText(cc.ped_edge_geom), 1))
             END
-        FROM (
-            SELECT 
-                cc.crosswalk_id,
-                cc.street_segment_id,
-                ST_Boundary(ST_GeomFromText(cw.geometry)) AS crosswalk_boundary,
-                ST_Intersection(
-                    ST_GeomFromText(s.geometry),
-                    ST_Boundary(ST_GeomFromText(cw.geometry))
-                ) AS cropped_seg
-            FROM crosswalk_centers cc
-            JOIN crosswalks cw ON cw.OBJECTID = cc.crosswalk_id
-            JOIN street_segments s ON s.OBJECTID = cc.street_segment_id
-            WHERE cc.is_oneway = TRUE
-        ) AS intersected
-        WHERE crosswalk_centers.crosswalk_id = intersected.crosswalk_id
-          AND crosswalk_centers.street_segment_id = intersected.street_segment_id;
-          
+        FROM street_segments s
+        WHERE cc.street_segment_id = s.OBJECTID
+        AND cc.is_oneway = TRUE;
         
         -- Two-way streets
         UPDATE crosswalk_centers
