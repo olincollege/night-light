@@ -73,7 +73,7 @@ if __name__ == "__main__":
     calculate_percieved_brightness(con)
 
     # Save the results to parquet
-    output_dir = abs_path("output")
+    output_dir = abs_path("../output")
     os.makedirs(output_dir, exist_ok=True)
 
     util_duckdb.save_table_to_parquet(con, "crosswalk_centers_contrast",
