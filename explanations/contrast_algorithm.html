@@ -280,25 +280,9 @@
 <section id="process-flow">
 <h2>Process Flow<a class="headerlink" href="#process-flow" title="Link to this heading">¶</a></h2>
 <figure class="align-center" id="sphinx-ext-graphviz">
-digraph &quot;sphinx-ext-graphviz&quot; {
-    rankdir=&quot;LR&quot;;
-    graph [fontname=&quot;Verdana&quot;, fontsize=&quot;12&quot;];
-    node [fontname=&quot;Verdana&quot;, fontsize=&quot;12&quot;, shape=box, style=rounded];
-
-    load_data [label=&quot;Load GeoJSON data\n(crosswalks, streetlights, road segments)&quot;];
-    simplify [label=&quot;Simplify crosswalk geometry\nand decompose edges&quot;];
-    classify_edges [label=&quot;Classify edges\n(vehicle vs pedestrian)&quot;];
-    compute_centers [label=&quot;Compute crosswalk centers&quot;];
-    detect_direction [label=&quot;Detect vehicle direction at each center&quot;];
-    find_streetlights [label=&quot;Find streetlights near each center&quot;];
-    classify_sides [label=&quot;Classify streetlights by vehicle side\nand append distance info&quot;];
-    compute_heuristics [label=&quot;Compute brightness &amp; contrast heuristics&quot;];
-    aggregate_results [label=&quot;Aggregate and store as table&quot;];
-
-    load_data -&gt; simplify -&gt; classify_edges -&gt; compute_centers;
-    compute_centers -&gt; detect_direction -&gt; find_streetlights;
-    find_streetlights -&gt; classify_sides -&gt; compute_heuristics -&gt; aggregate_results;
-}<figcaption>
+<div class="graphviz"><object data="../_images/graphviz-417499dbb59e697f2e011abce574c5fa6f33bba0.svg" type="image/svg+xml" class="graphviz">
+<p class="warning">Data pipeline for Crosswalk Contrast and Brightness Heuristic</p></object></div>
+<figcaption>
 <p><span class="caption-text">Data pipeline for crosswalk contrast and brightness heuristic</span><a class="headerlink" href="#sphinx-ext-graphviz" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
