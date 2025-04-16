@@ -1,3 +1,4 @@
+import inspect
 import os
 import duckdb
 import geopandas as gpd
@@ -177,3 +178,20 @@ def save_table_to_csv(
     """
     df = _query_table_to_df(con, table_name, f"SELECT * FROM {table_name}")
     df.to_csv(filename, index=False)
+
+
+def abs_path(relative_path: str) -> str:
+    """
+    Define an absolute path for file
+
+    Args:
+        relative_path: a string of a file name
+
+    Returns:
+        A string that is a full file path in the user's directory
+    """
+    caller_file = inspect.stack()[1].filename  # Get the caller's frame
+    caller_dir = os.path.dirname(
+        os.path.abspath(caller_file)
+    )  # Get the directory of the caller's script
+    return os.path.join(caller_dir, relative_path)

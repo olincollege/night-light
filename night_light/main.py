@@ -1,5 +1,3 @@
-import inspect
-
 from night_light.analyzer import (
     identify_vehicle_direction,
     simplify_crosswalk_polygon_to_box,
@@ -14,24 +12,7 @@ from night_light.analyzer import (
     calculate_percieved_brightness,
 )
 from night_light.util_duckdb import *
-
-
-# move to a until file?
-def abs_path(relative_path: str) -> str:
-    """
-    Define an absolute path for file
-
-    Args:
-        relative_path: a string of a file name
-
-    Returns:
-        A string that is a full file path in the user's directory
-    """
-    caller_file = inspect.stack()[1].filename  # Get the caller's frame
-    caller_dir = os.path.dirname(
-        os.path.abspath(caller_file)
-    )  # Get the directory of the caller's script
-    return os.path.join(caller_dir, relative_path)
+from night_light.util_duckdb import abs_path
 
 
 def initialize_db(con: duckdb.DuckDBPyConnection):
@@ -46,8 +27,8 @@ def initialize_db(con: duckdb.DuckDBPyConnection):
     load_multiple_datasets(con, datasets)
 
 
-if __name__ == "__main__":
-    # Initilize the .db file and connect to it
+def main():
+    # Initialize the .db file and connect to it
     con = connect_to_duckdb(abs_path("../boston_contrast.db"))
     initialize_db(con)
 
@@ -64,12 +45,12 @@ if __name__ == "__main__":
     create_crosswalk_centers_lights(con)
     find_streetlights_crosswalk_centers(con, 20)
 
-    # Calculate contrast hueristic per streetlight centerpoint
+    # Calculate contrast heuristic per streetlight centerpoint
     classify_lights_by_side(con)
     add_streetlight_distances(con)
     calculate_contrast_heuristics(con, 0.01)
 
-    # Get brightness hueristic per streetlight centerpoint
+    # Get brightness heuristic per streetlight centerpoint
     calculate_percieved_brightness(con)
 
     # Save the results to parquet
