@@ -3,8 +3,8 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-from analyzer import *
-from util_duckdb import *
+from night_light.analyzer import *
+from night_light.util_duckdb import *
 
 
 def initialize_db(con: duckdb.DuckDBPyConnection):
@@ -12,16 +12,16 @@ def initialize_db(con: duckdb.DuckDBPyConnection):
     Create an initial .db file with crosswalks, streetlights, and street_segments datasets
     """
     datasets = [
-        (abs_path("../datasets/boston_crosswalks.geojson"), "crosswalks"),
-        (abs_path("../datasets/boston_streetlights.geojson"), "streetlights"),
-        (abs_path("../datasets/boston_street_segments.geojson"), "street_segments"),
+        (abs_path("datasets/boston_crosswalks.geojson"), "crosswalks"),
+        (abs_path("datasets/boston_streetlights.geojson"), "streetlights"),
+        (abs_path("datasets/boston_street_segments.geojson"), "street_segments"),
     ]
     load_multiple_datasets(con, datasets)
 
 
 def main():
     # Initialize the .db file and connect to it
-    con = connect_to_duckdb(abs_path("../boston_contrast.db"))
+    con = connect_to_duckdb(abs_path("boston_contrast.db"))
     initialize_db(con)
 
     # Simplify crosswalks and decompose edges
@@ -46,7 +46,7 @@ def main():
     calculate_percieved_brightness(con)
 
     # Save the results to parquet
-    output_dir = abs_path("../output")
+    output_dir = abs_path("output")
     os.makedirs(output_dir, exist_ok=True)
 
     save_table_to_parquet(

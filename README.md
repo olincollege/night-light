@@ -34,5 +34,5 @@ pip install -r requirements.txt
 ### Run the script
 
 ```sh
-python src/night_light/main.py
+python main.py
 ```
