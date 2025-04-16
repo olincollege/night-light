@@ -10,14 +10,24 @@ The crosswalk dataset should contain polygons that represent the boundaries of t
 
 UMass Amherst has been developing a dataset of all crosswalks in Massachusetts using computer vision model (YOLOv8) and aerial imagery. The dataset is not perfect, but it is a good starting point for our project, and has the potential to be applicable for states that also do not have a thorough catalog of their crosswalk assets. The dataset can be viewed at the `UMass Crosswalk Dataset <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Assets/Crosswalk_Poly/FeatureServer/0&source=sd>`_.
 
+Streetlights Dataset
+--------------------
+
+The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, `OpenStreetMap features <https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp>`_ could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the `Boston Streetlight Dataset <https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f>`_ (note: the dashboard seems unavailable at the time of writing, but was available as of 2024, the GeoJSON file is available on our repo, though). Here's also a dataset with a reduced set of columns available through `Analyze Boston <https://data.boston.gov/dataset/streetlight-locations>`_.
+
+Street Segments Dataset
+-----------------------
+
+The street segments dataset is used to identify the road segments that intersect with the crosswalks. The dataset should contain information about the geometry of the road segments, as well as any relevant attributes such as speed limits, traffic volume, and one-way status. Currently, only the one-way status attribute is utilized. The dataset can be obtained from the `Analyze Boston <https://data.boston.gov/dataset/boston-street-segments-sam-system>`_ and viewed online on `ArcGIS platform <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gisportal.boston.gov/arcgis/rest/services/SAM/Live_SAM_Address/FeatureServer/3&source=sd>`_.
+
 Traffic Dataset
 ---------------
 
 Since our project is focused on pedestrian safety at nighttime on crosswalks, we need a dataset that contains information about the volume of traffic. MassDOT provides a convenient dataset that includes average annual daily traffic (AADT) counts for most roads in Massachusetts. The counts will be used to inform the risk of a pedestrian being hit by a car at a given crosswalk. The dataset can be viewed at the `MassDOT Traffic Dataset <https://www.arcgis.com/apps/mapviewer/index.html?url=https://gis.massdot.state.ma.us/arcgis/rest/services/Roads/VMT/FeatureServer/10&source=sd>`_.
 
-To estimate the danger of a road, we also need a dataset with information about speed limits per road. MassDOT provides a database (updated yearly) with speed limits for most roads in Massachusetts. This can be viewed and downloaded at `this link <https://geodot-massdot.hub.arcgis.com/search?groupIds=362562c527bb404884dd1608b4bfdb62>`
+To estimate the danger of a road, we also need a dataset with information about speed limits per road. MassDOT provides a database (updated yearly) with speed limits for most roads in Massachusetts. This can be viewed and downloaded at `this link <https://geodot-massdot.hub.arcgis.com/search?groupIds=362562c527bb404884dd1608b4bfdb62>`_.
 
-To get a list of traffic lights, which have a correlation with safer crosswalks, we look into BostonMap's GIS. Although MassDOT does provide a database for the state of Massachusetts, this is pretty sparse and less useful. The dataset used can be found at `this link <https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::traffic-signals/about>`
+To get a list of traffic lights, which have a correlation with safer crosswalks, we look into BostonMap's GIS. Although MassDOT does provide a database for the state of Massachusetts, this is pretty sparse and less useful. The dataset used can be found at `this link <https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::traffic-signals/about>`_.
 
 Population Density Dataset
 --------------------------
@@ -45,11 +55,6 @@ Density Calculation Methodology
    square kilometers. This results in values representing the density of each
    population segment (e.g., seniors per km²).
 
-Streetlights Dataset
-********************
-
-The main information that the streetlights dataset should contain is the location of the streetlights. Additional information such as the type of bulb, last-replacement year, and wattage, etc. are useful to have as well. After talking to Michael Donaghy, Superintendent of Street Lighting at the City of Boston Public Works Department, we learned that Boston has recently completed a full catalog of their streetlight assets in 2023. We acknowledge that many cities might not have this data available, in which case, `OpenStreetMap features <https://wiki.openstreetmap.org/wiki/Tag:highway%3Dstreet_lamp>`_ could be used to roughly estimate the streetlight locations. The Boston streetlight dataset can be viewed at the `Boston Streetlight Dataset <https://sdmaps.maps.arcgis.com/apps/dashboards/84e1553e754b424f9c544ab5079ed99f>`_.
-
 Income Dataset
 **************
 
@@ -73,14 +78,14 @@ Pedestrian Generators
 
 Pedestrian generators are establishments and attractions that will draw a flow of people. We focused on making catogories that target light night foot traphic and higher risk populations. To collect the data we used Open Street Map, which has a lot of crowd sourced data. The data is not a complete set, but is a good starting place to look at this attribute. The following are the catogories that we looked for:
 
-   - **Tourist Spots**: Tourism areas, museams, art galleries, attractions, viewpoints, zoo, theme parks, memorials, monument, historic sites
-   - **Schools**: Schools, university, college, language schools
-   - **Health Facalities**: Hospitals, clinics, nursing homes, doctors, dentists, pharamcies, disability services, social facilities, healthcare
-   - **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
-   - **Shopping**: Shops, markets, supermarkets, convenience stores, department stores, clothe stores, shoe stores
-   - **Night Life**: Bars, Pubs, Nightclubs, casinos, cocktail bars, beer gardens, dance centre, drinking water
-   - **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
-   - **Restaurants**: Restaurants, fast food, food court, ice cream, pizza
+- **Tourist Spots**: Tourism areas, museams, art galleries, attractions, viewpoints, zoo, theme parks, memorials, monument, historic sites
+- **Schools**: Schools, university, college, language schools
+- **Health Facalities**: Hospitals, clinics, nursing homes, doctors, dentists, pharamcies, disability services, social facilities, healthcare
+- **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
+- **Shopping**: Shops, markets, supermarkets, convenience stores, department stores, clothe stores, shoe stores
+- **Night Life**: Bars, Pubs, Nightclubs, casinos, cocktail bars, beer gardens, dance centre, drinking water
+- **Open Spaces**: Parks, nauares reserve, gardens, recreation grounds, playgrounds, grass
+- **Restaurants**: Restaurants, fast food, food court, ice cream, pizza
 
-Here is more information on each of the tags on the `OSM Website <https://wiki.openstreetmap.org/wiki/Map_features>`.
+Here is more information on each of the tags on the `OSM Website <https://wiki.openstreetmap.org/wiki/Map_features>`_.
 
