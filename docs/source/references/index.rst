@@ -6,5 +6,4 @@ References
     :maxdepth: 2
     :caption: Contents:
 
-    utils/index
-    socioeconomic/index
+    utils

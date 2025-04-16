@@ -128,7 +128,7 @@ def load_multiple_datasets(
         datasets (List[Tuple[Union[str, GeoDataFrame], str]]): List of tuples where
             each tuple contains:
             - data_source (Union[str, GeoDataFrame]): Path to a GeoJSON file or a
-                GeoDataFrame.
+            GeoDataFrame.
             - table_name (str): Name of the target table.
     """
     for data_source, table_name in datasets:
