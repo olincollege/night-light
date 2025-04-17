@@ -5,7 +5,7 @@ SCOPE Santos-Volpe '24-25
 
 This repository explores the evaluation of lighting at crosswalks using GIS data for both crosswalks and streetlights. According to the U.S. Department of Transportation, 76% of pedestrian fatalities occur in dark conditions, even though only 25% of traffic occurs after dark. To reduce these fatalities, it is important to identify crosswalks at higher risk and those that do not meet recommended lighting guidelines. The process of evaluating the lighting of every crosswalk in any significant geographic area is time-consuming and currently impractical for governments. With the goal of saving time and money on these data collection and evaluative processes (and save lives!), this project works to provide a reliable, scalable method using GIS data to determine driver visibility of pedestrians in crosswalks at night. The project was done in collaboration with [Olin College of Engineering](https://www.olin.edu/research/data-illuminators-scalable-data-collection-nighttime-crosswalk-lighting), [Volpe National Transportation Systems Center](https://www.volpe.dot.gov/), and [The Santos Family Foundation](https://www.santosfamilyfoundation.org/).
 
-[Visit our documentation website for information about the code.](olincollege.github.io/night-light/](https://olincollege.github.io/night-light/)
+[Visit our documentation website for information about the code.](https://olincollege.github.io/night-light/)
 
 Check out our report for more information about the project, algorithms we used, and limitations.
 
