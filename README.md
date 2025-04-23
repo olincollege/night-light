@@ -57,7 +57,24 @@ The parquet & CSV files can be uploaded to a tool like [kepler.gl](https://keple
 
 ### How to use kepler.gl
 
-Add here
+#### Uploading files
+- Click "Get started"
+- Upload the parquet files from the output folder
+- Click the “+ Add Data” button to add all the parquet files
+
+#### Viewing data
+- Click “+ Add Layer” to select a table from the parquet file to display
+- Under the box labeled “Basic” click on “Select A Type”
+- Select the Point option for displaying streetlights or crosswalk centerpoints
+    - Depending on the type of data you may want to select line or polygon
+- Then scroll down and under the box labeled “GeoJSON Feature” click on “Select a field” and pick the geometry field
+- Scrolling down farther there are options to change the color, radius, and labels for the point
+
+#### Other tips
+- Hover over points on the map to see a pop-up with information about that point
+- Use the funnel icon in the top left to filter and find specific crosswalks or streetlights
+    - Click “+ Add Filter” and select the desired field 
+
 
 ## Datasets
 
