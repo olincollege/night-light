@@ -57,7 +57,24 @@ The parquet & CSV files can be uploaded to a tool like [kepler.gl](https://keple
 
 ### How to use kepler.gl
 
-Add here
+#### Uploading files
+- Click "Get started"
+- Upload the parquet files from the output folder
+- Click the “+ Add Data” button to add all the parquet files
+
+#### Viewing data
+- Click “+ Add Layer” to select a table from the parquet file to display
+- Under the box labeled “Basic” click on “Select A Type”
+- Select the Point option for displaying streetlights or crosswalk centerpoints
+    - Depending on the type of data you may want to select line or polygon
+- Then scroll down and under the box labeled “GeoJSON Feature” click on “Select a field” and pick the geometry field
+- Scrolling down farther there are options to change the color, radius, and labels for the point
+
+#### Other tips
+- Hover over points on the map to see a pop-up with information about that point
+- Use the funnel icon in the top left to filter and find specific crosswalks or streetlights
+    - Click “+ Add Filter” and select the desired field 
+
 
 ## Datasets
 
@@ -80,6 +97,26 @@ The dataset should represent the geometries of the streetlights represented as p
 The street segments dataset is used to identify the road segments (linestrings) that intersect with the crosswalks. The dataset should contain information about the geometry of the road segments, as well as any relevant attributes such as speed limits, traffic volume, and one-way status. Currently, only the one-way status attribute is utilized. The dataset can be obtained from the [Analyze Boston](https://data.boston.gov/dataset/boston-street-segments-sam-system) and viewed online on [ArcGIS platform](https://www.arcgis.com/apps/mapviewer/index.html?url=https://gisportal.boston.gov/arcgis/rest/services/SAM/Live_SAM_Address/FeatureServer/3&source=sd).
 
 
-## How to Run with Different Data Sets
+## How to Run with Different Datasets
 
-Add here
+#### Datasets
+
+- Find crosswalk, streetlight, and street segment datasets for the area you want to analyze.
+
+- [Refer back to the dataset section for specifics and ideas on how to locate these datasets.](#datasets)
+
+    - Make sure you have the necessary columns for calculations!
+
+#### Update main.py
+
+- Update the initialize_db function to use the filenames of the new GeoJSON files.
+
+- Replace "boston_contrast.db" in the first line of the main function with a name that matches the area your new data represents.
+
+#### Run
+
+-  [Follow the quick start instructions found here](#quickstart).
+
+    -  Note: Large datasets can take a while to run (15 minutes to an hour).
+
+- [Display results using kepler.gl](#how-to-use-keplergl).
