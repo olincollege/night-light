@@ -97,7 +97,7 @@ The dataset should represent the geometries of the streetlights represented as p
 The street segments dataset is used to identify the road segments (linestrings) that intersect with the crosswalks. The dataset should contain information about the geometry of the road segments, as well as any relevant attributes such as speed limits, traffic volume, and one-way status. Currently, only the one-way status attribute is utilized. The dataset can be obtained from the [Analyze Boston](https://data.boston.gov/dataset/boston-street-segments-sam-system) and viewed online on [ArcGIS platform](https://www.arcgis.com/apps/mapviewer/index.html?url=https://gisportal.boston.gov/arcgis/rest/services/SAM/Live_SAM_Address/FeatureServer/3&source=sd).
 
 
-## How to Run with Different Data Sets
+## How to Run with Different Datasets
 
 #### Datasets
 
