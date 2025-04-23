@@ -53,7 +53,7 @@ The main.py file outputs:
 
 The DuckDB database can easily be viewed using a tool such as [DBeaver](https://dbeaver.io/). For a more indepth look, we recommend using DBeaver to see what is happening at each step of the algorithm. DBeaver can be [downloaded here](https://dbeaver.io/download/) and [documentation on using it can be found here](https://duckdb.org/docs/stable/guides/sql_editors/dbeaver.html).
 
-The parquet & CSV files can be uploaded to a tool like [kepler.gl](https://kepler.gl/), which is an open source geospatial analysis tool that has a mapping feature. Go here to see the Boston results in [kepler.gl](addlinkhereeeeeeee)
+The parquet & CSV files can be uploaded to a tool like [kepler.gl](https://kepler.gl/), which is an open source geospatial analysis tool that has a mapping feature. Go here to see the Boston results in [kepler.gl](https://studio.foursquare.com/map/public/cd85979d-db73-4a58-b17c-64dcd1544009)
 
 ### How to use kepler.gl
 
