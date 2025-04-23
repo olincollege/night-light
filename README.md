@@ -99,4 +99,24 @@ The street segments dataset is used to identify the road segments (linestrings) 
 
 ## How to Run with Different Data Sets
 
-Add here
+#### Datasets
+
+- Find crosswalk, streetlight, and street segment datasets for the area you want to analyze.
+
+- [Refer back to the dataset section for specifics and ideas on how to locate these datasets.](#datasets)
+
+    - Make sure you have the necessary columns for calculations!
+
+#### Update main.py
+
+- Update the initialize_db function to use the filenames of the new GeoJSON files.
+
+- Replace "boston_contrast.db" in the first line of the main function with a name that matches the area your new data represents.
+
+#### Run
+
+-  [Follow the quick start instructions found here](#quickstart).
+
+    -  Note: Large datasets can take a while to run (15 minutes to an hour).
+
+- [Display results using kepler.gl](#how-to-use-keplergl).
